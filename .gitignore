@@ -1,3 +1,4 @@
 tmp
-tiapp.xml
+build
+*.xml
 *.json
