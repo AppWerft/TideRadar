@@ -17,7 +17,6 @@ TideAdapter.prototype = {
 		});
 		xhr.open('GET', Ti.App.Properties.getString('ENDPOINT'));
 		xhr.setRequestHeader('Accept', 'application/json');
-		//xhr.setRequestHeader('X-Tide', Ti.Utils.md5HexDigest() );
 		xhr.send();
 	},
 	getStations : function() {
