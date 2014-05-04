@@ -1,0 +1,142 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<script type="text/javascript" src="jquery.min.js"></script>
+		<script type="text/javascript" src="highcharts.js"></script>
+		<style>
+		body {margin:0}
+		</style>
+		<script type="text/javascript">
+			var chart;
+			function initChart(datas) {
+				for (var i=0;i<datas.ups.length;i++) {
+				    if (datas.ups[i] == undefined) datas.ups[i] = null;
+				}
+				for (var i=0;i<datas.downs.length;i++) {
+				    if (datas.downs[i] == undefined) datas.downs[i] = null;
+				}
+				var zeit = new Date();
+  				var utc = zeit.getTime()+2*3600000;
+  				chart = new Highcharts.Chart({
+					chart: {
+						renderTo: 'container',
+						spacingRight: 15,
+						defaultSeriesType: 'area',
+						backgroundColor: '#5586B4'
+					},
+				    title: {
+						text: datas.title,
+						margin:3,
+						style: {color:'black',fontWeight:'bold',fontSize:'10pt'}
+					},
+					xAxis: {
+						type: 'datetime',
+						color: 'black',
+						title: {
+							text: null
+						},
+						labels: {
+							style : {color:'black',fontSize:'7pt'},
+							step : 0.5
+						
+						},					
+					},
+					yAxis: {
+						margin:0,
+						min: 0,
+						color: 'black',
+						labels : {
+							step : 0.1
+						},
+						labels: {
+							color:'black',
+							style : {color:'black',fontSize:'7pt'},
+          				  formatter: function() {
+           					 return this.value +'m';
+            			  }
+         				},
+						title: {
+						    text : 'Tide/m Seekartennull',
+							style : {fontWeight:'normal',color:'black',fontSize:'7pt'}
+						},
+						tickInterval : 1,
+						startOnTick: false,
+						showFirstLabel: false,
+						x : 0
+					},
+					tooltip: {
+      				  formatter: function() {
+      				  		var zeit = new Date(this.x);
+      				  		var hh =  zeit.getHours();
+      				  		var MM = zeit.getMinutes(); 
+      				 		if (hh<10) hh = '0' + hh;
+      				  		if (MM<10) MM = '0' + MM;
+      				  		return '<b>'+hh+ ':' + MM+ ' Uhr</b><br><small>  '+ this.y.toFixed(2) + ' m</small>';
+        				 }
+    				},
+					legend: {
+						enabled: false
+					},
+					plotOptions: {
+						area: {
+							fillColor: {
+								linearGradient: [0, 0, 0, 300],
+								stops: [
+									[0, Highcharts.getOptions().colors[0]],
+									[1, 'rgba(2,0,0,0)']
+								]
+							},
+							lineWidth: 1,
+							marker: {
+               enabled: false,
+               states: {
+                  hover: {
+                     enabled: true,
+                     radius: 5
+                  }
+               }
+            },
+							shadow: false,
+							states: {
+								hover: {
+									lineWidth: 1						
+								}
+							}
+						}
+					},
+				
+					series: [{
+						type: 'area',
+						name: 'ablaufend',
+						color:'yellow',
+						pointInterval: datas.interval,
+						pointStart: utc,
+						data: datas.ups
+					},
+					{
+						type: 'area',
+						name: 'auflaufend',
+						color: 'red',
+						pointInterval: datas.interval,
+						pointStart: utc,
+						data: datas.downs
+					}
+					
+					]
+				});
+				$('tspan[x="310"]').hide();
+				
+			};
+			
+		</script>
+		
+	</head>
+	<body>
+		
+		<!-- 3. Add the container -->
+		<div id="container" style="width:320px; padding:0;height: 130px; margin: 0 0"></div>
+		
+				
+	</body>
+</html>
