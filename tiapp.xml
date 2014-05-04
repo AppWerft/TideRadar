@@ -27,6 +27,7 @@
     <guid>d161e497-3630-4a89-b16c-34e20635159e</guid>
     <property name="ti.ui.defaultunit">system</property>
     <property name="dbname">TIDES</property>
+    <property name="ENDPOINT">http://familientagebuch.de/tideradar/<property>
     
     <iphone>
         <orientations device="iphone">
