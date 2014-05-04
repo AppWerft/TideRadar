@@ -127,7 +127,6 @@ ctrl.tides = ( function() {
 			var self = this;
 			ctrl.stations.setLatest(id);
 			var db= Ti.Database.open(Ti.App.Properties.getString('dbname'));
-	
 			var sql = 'SELECT sets, daysets FROM `stations` WHERE id="' + id + '" AND day="' + new Date().toString('yyyy-MM-dd') + '"';
 			var resultSet = db.execute(sql);
 		     if(resultSet.isValidRow()) {
@@ -170,7 +169,6 @@ ctrl.tides = ( function() {
 				//tagessortiert
 				var sets = [];
 				// alle sets ohne Tageseinteilung
-				console.log(res);
 				if(res.success == 0 || res.data==null) {
 					callback(null);
 					return null;

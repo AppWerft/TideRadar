@@ -153,7 +153,7 @@ ctrl.stations = ( function() {
 					"longitude" : e.coords.longitude
 				};
 				if(getDistance(e.coords.latitude, e.coords.longitude, ctrl.stations.lastposition.longitude) < 30) {
-					var xhr = Titanium.Network.createHTTPClient();
+					var xhr = Ti.Network.createHTTPClient();
 					xhr.onerror = function() {
 					};
 					xhr.onload = function() {
