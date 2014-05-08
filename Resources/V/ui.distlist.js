@@ -3,22 +3,23 @@ ui.dist = ( function() {
 		api.getDistWindow = function() {
 			function fillListe(locs) {
 				var rows = [];
-				for (var i = 0; i < locs.length; i++) {
+				for (var i = 0; i < locs.length && i < 36; i++) {
 					//if(locs[i].dist > 90000)
 					//	continue;
 					rows[i] = Ti.UI.createTableViewRow({
-						height : '80d',
+						height : '80dp',
 						item : locs[i],
 						hasChild : true,
+						backgroundColor : 'white'
 					});
 					var label = Ti.UI.createLabel({
 						text : locs[i].label,
-						height : '22dp',
+						height : '24dp',
 						top : '5dp',
 						textAlign : 'left',
 						color : '#444',
 						font : {
-							fontSize : '16dp',
+							fontSize : '18dp',
 							fontWeight : 'bold',
 							fontFamily : 'Copse'
 						},
@@ -34,45 +35,41 @@ ui.dist = ( function() {
 						dist = (locs[i].dist / 1000).toFixed(1) + ' km';
 					var distLabel = Ti.UI.createLabel({
 						text : 'Entfernung:   ' + dist,
-						height : '18dp',
-						top : '35dp',
+						height : '20dp',
+						top : '30dp',
 						textAlign : 'left',
 						color : '#555',
 						font : {
-							fontSize : '14dp',
+							fontSize : '12dp',
 							fontFamily : 'Copse'
 						},
 						left : '10dp'
 					});
 					rows[i].add(distLabel);
 					var subtitle = Ti.UI.createLabel({
-						text : '',
+						text : 'Dieses Jahr wird dieser Meßpunkt nicht abgefragt',
 						height : '15dp',
-						top : '55p',
+						top : '50dp',
 						textAlign : 'left',
 						color : '#555',
 						font : {
-							fontSize : '14p',
+							fontSize : '12dp',
 							fontFamily : 'Copse'
 						},
 						left : '10dp'
 					});
-					if (locs[i].dist < 20000) {
-						ctrl.tides.getForcast(locs[i].id, function(datas) {
-							if (datas == null) {
-								text = 'keine Daten vorhanden.';
-							} else {
-								var text = 'Tide: ';
-								if (!isNaN(datas.current.level))
-									text += (datas.current.level + 'm   ');
-								text += datas.current.text;
-							}
-							subtitle.setText(text);
-
-						});
-					} else
-						rows[i].setHeight(60);
 					rows[i].add(subtitle);
+					Ti.App.Tides.getPrediction(locs[i].id, {
+						onOk : function(_prediction) {
+							var text = 'Tide: ';
+							if (!isNaN(_prediction.current.level))
+								text += (_prediction.current.level + 'm   ');
+							text += _prediction.current.text;
+							subtitle.setText(text);
+						},
+						onError : function() {
+						}
+					});
 				}
 
 				liste.setData(rows);
@@ -84,8 +81,7 @@ ui.dist = ( function() {
 				title : 'Umgebung@TideRadar'
 			});
 			var liste = Ti.UI.createTableView({
-				height : '100%',
-				top : 15
+				top : (Ti.Android) ? 0 : 15
 			});
 			var hint = Ti.UI.createLabel({
 				height : 15,
@@ -99,86 +95,87 @@ ui.dist = ( function() {
 				text : '  Ziehen erfrischt die Werte und speichert offline'
 			});
 			w.add(hint);
-			var tableHeader = Ti.UI.createView({
-				backgroundImage : "/assets/bunthaus2.jpg",
-				width : Ti.Platform.displayCaps.platformWidth - 1,
-				height : 140
-			});
-			var arrow = Ti.UI.createView({
-				backgroundImage : "./assets/whiteArrow.png",
-				width : 23,
-				height : 60,
-				bottom : 10,
-				left : 20
-			});
-			var statusLabel = Ti.UI.createLabel({
-				text : "Ziehe um zu  aktualisieren",
-				left : 55,
-				width : 200,
-				bottom : 10,
-				height : "auto",
-				color : "silver",
-				textAlign : "center",
-				font : {
-					fontSize : 13,
-					fontWeight : "bold"
-				},
-				shadowColor : "#999",
-				shadowOffset : {
-					x : 0,
-					y : 1
-				}
-			});
-			var lastUpdatedLabel = Ti.UI.createLabel({
-				text : "",
-				left : 55,
-				width : 220,
-				bottom : 15,
-				height : "auto",
-				color : "#576c89",
-				textAlign : "center",
-				font : {
-					fontSize : 12
-				},
-				shadowColor : "#999",
-				shadowOffset : {
-					x : 0,
-					y : 1
-				}
-			});
-			var actInd = Titanium.UI.createActivityIndicator({
-				left : 20,
-				bottom : 13,
-				width : 30,
-				height : 30
-			});
-			tableHeader.add(arrow);
-			tableHeader.add(statusLabel);
-			//	tableHeader.add(lastUpdatedLabel);
-			tableHeader.add(actInd);
-			liste.headerPullView = tableHeader;
-			var pulling = false;
-			var reloading = false;
-			var self = this;
-			function beginReloading() {
-				setTimeout(endReloading, 1000);
-			}
-
-			function endReloading() {
-				ctrl.stations.getDistList(fillListe);
-				reloading = false;
-				lastUpdatedLabel.text = "";
-				statusLabel.text = "Ziehe runter!";
-				actInd.hide();
-				arrow.show();
-				liste.setContentInsets({
-					top : 0
-				}, {
-					animated : true
+			if (!Ti.Android) {
+				var tableHeader = Ti.UI.createView({
+					backgroundImage : "/assets/bunthaus2.jpg",
+					width : Ti.Platform.displayCaps.platformWidth - 1,
+					height : 140
 				});
-			}
+				var arrow = Ti.UI.createView({
+					backgroundImage : "./assets/whiteArrow.png",
+					width : 23,
+					height : 60,
+					bottom : 10,
+					left : 20
+				});
+				var statusLabel = Ti.UI.createLabel({
+					text : "Ziehe um zu  aktualisieren",
+					left : 55,
+					width : 200,
+					bottom : 10,
+					height : "auto",
+					color : "silver",
+					textAlign : "center",
+					font : {
+						fontSize : 13,
+						fontWeight : "bold"
+					},
+					shadowColor : "#999",
+					shadowOffset : {
+						x : 0,
+						y : 1
+					}
+				});
+				var lastUpdatedLabel = Ti.UI.createLabel({
+					text : "",
+					left : 55,
+					width : 220,
+					bottom : 15,
+					height : "auto",
+					color : "#576c89",
+					textAlign : "center",
+					font : {
+						fontSize : 12
+					},
+					shadowColor : "#999",
+					shadowOffset : {
+						x : 0,
+						y : 1
+					}
+				});
+				var actInd = Titanium.UI.createActivityIndicator({
+					left : 20,
+					bottom : 13,
+					width : 30,
+					height : 30
+				});
+				tableHeader.add(arrow);
+				tableHeader.add(statusLabel);
+				//	tableHeader.add(lastUpdatedLabel);
+				tableHeader.add(actInd);
+				liste.headerPullView = tableHeader;
+				var pulling = false;
+				var reloading = false;
+				var self = this;
+				function beginReloading() {
+					setTimeout(endReloading, 1000);
+				}
 
-			if (Ti.Platform.osname != 'android' || true) {
+				function endReloading() {
+					ctrl.stations.getDistList(fillListe);
+					reloading = false;
+					lastUpdatedLabel.text = "";
+					statusLabel.text = "Ziehe runter!";
+					actInd.hide();
+					arrow.show();
+					liste.setContentInsets({
+						top : 0
+					}, {
+						animated : true
+					});
+				}
+
+			
 				liste.addEventListener('scroll', function(e) {
 					liste.setTop(0);
 
@@ -222,7 +219,7 @@ ui.dist = ( function() {
 			}
 
 			liste.addEventListener('click', function(e) {
-				var detailwindow = ui.tides.getDetail(e.rowData.item);
+				var detailwindow = ui.tides.getDetail(e.row.item);
 
 			});
 			var stations = ctrl.stations.getDistList(fillListe);

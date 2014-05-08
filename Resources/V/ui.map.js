@@ -1,11 +1,10 @@
-Ti.Map = require('ti.map');
+
 ui.map = ( function() {
+		var TiMap= require('ti.map');
 		var api = {};
 		api.getMapWindow = function(item) {
-			function setPin(datas) {
+			function setSubtitleofAnnotation(datas, pin) {
 				var date = new Date().toString('HH:mm');
-				if (!datas || !datas.current)
-					return;
 				var pegel = isNaN(datas.current.level) ? '' : 'Pegel: ' + datas.current.level + ' m';
 				var subtitle = date + ' Uhr,  ' + pegel + datas.current.text;
 				if (pin)
@@ -20,100 +19,17 @@ ui.map = ( function() {
 				"record" : false,
 				"cron" : null
 			};
-			var annotation_bussy = false;
-			var optionsDialogOpts = {
-				options : ['Eigene Position', 'Abbruch'],
-				cancel : 1,
-				title : 'Gezeitenkarten Aktionen:'
-			};
-			var dialog = Ti.UI.createOptionDialog(optionsDialogOpts);
-			var metaView = Ti.UI.createView({
-				width : '100%',
-				height : 60,
-				top : -60
-			});
-			var metaBg = Ti.UI.createImageView({
-				image : '/assets/black.png',
-				opacity : 0.52,
-				height : '100%',
-				width : '100%',
-			});
-			metaView.add(metaBg);
-			var speedValue = Ti.UI.createLabel({
-				right : 10,
-				bottom : 0,
-				text : '0',
-				color : 'red',
-				height : 50,
-				font : {
-					fontSize : 48,
-					color : 'red',
-					fontFamily : 'Quartz DB'
-				},
-				size : {
-					textAlign : 'right',
-					width : 110,
-				}
-			});
-			var speedText = Ti.UI.createLabel({
-				text : 'Geschw. /kn:',
-				right : 0,
-				top : 2,
-				color : 'white',
-				height : 12,
-				width : 'auto',
-				font : {
-					fontSize : 11,
-					fontFamily : 'Copse'
-				}
-			});
-			var nnValue = Ti.UI.createLabel({
-				left : 5,
-				bottom : 0,
-				height : 50,
-				color : 'red',
-				font : {
-					fontSize : 48,
-					color : 'red',
-					fontFamily : 'Quartz DB'
-				},
-				size : {
-					width : 140,
-					height : 50
-				}
-			});
-			var nnText = Ti.UI.createLabel({
-				text : 'Höhe über NN:',
-				left : 2,
-				top : 2,
-				color : 'white',
-				font : {
-					fontSize : 11,
-					fontFamily : 'Copse'
-				},
-				width : 100,
-				height : 12
-
-			});
-			metaView.add(nnValue);
-			metaView.add(nnText);
-			metaView.add(speedValue);
-			metaView.add(speedText);
-
-			var mainMapView = Ti.Map.createView({
-				height : Ti.UI.FILL,
-				width : Ti.UI.FILL,
+			var annotation_busy = false;
+			var mainMapView = TiMap.createView({
 				userLocation : true,
-				mapType : Titanium.Map.HYBRID_TYPE,
+				enableZoomControls:false,
+				mapType : TiMap.HYBRID_TYPE,
 				region : {
-					latitude : 54.05,
-					longitude : 8.5,
-					latitudeDelta : 0.5,
-					longitudeDelta : 0.5
-				},
-				opacity : 1,
-				top : 0,
-				bottom : 0
+					latitude : 53.55,
+					longitude : 10,
+					latitudeDelta : 0.7,
+					longitudeDelta : 0.7
+				}
 			});
 			var mapNavibar = Ti.UI.createScrollableView({
 				bottom : -50,
@@ -155,7 +71,6 @@ ui.map = ( function() {
 
 			});
 			var locs = ctrl.stations.getLongitudeList();
-
 			var views = [];
 			for (var i = 0; i < locs.length; i++) {
 				views.push(Ti.UI.createLabel({
@@ -169,23 +84,17 @@ ui.map = ( function() {
 					width : '90%',
 					text : locs[i].label
 				}));
-				pins.push(Ti.Map.createAnnotation({
-					latitude : locs[i].gps.split(',')[0],
-					longitude : locs[i].gps.split(',')[1],
-					image : '/assets/pin.png',
-					title : locs[i].label,
-					subtitle : 'warte auf Daten …',
-					item : locs[i],
-					animate : false,
-					index : i
-				}));
+				pins.push(require('ui/annotation.widget').create(locs[i], i));
 			}
 			mapNavibar.views = views;
 			mainMapView.addAnnotations(pins);
 
 			mainMapView.addEventListener('click', function(e) {
 				if (e.clicksource == 'pin') {
-					annotation_bussy = true;
+					annotation_busy = true;
+					setTimeout(function() {
+						annotation_busy = false;
+					}, 1000);
 					pin = e.annotation;
 					mapNavibar.scrollToView(pin.index, {
 						duration : 1000
@@ -196,13 +105,25 @@ ui.map = ( function() {
 					mapNavibar.animate(Ti.UI.createAnimation({
 						bottom : 0
 					}));
-					ctrl.tides.getForcast(pin.item.id, setPin);
-				} else if (e.clicksource == 'title' || e.clicksource == 'title' == 'subtitle') {
-					var detailwindow = ui.tides.getDetail(e.annotation.item);
+					/*Ti.App.Tides.getPrediction(pin.item.id, {
+						onOk : function(_prediction) {
+							setSubtitleofAnnotation(_prediction, pin);
+						}
+					});*/
+
+				} else {
+					console.log('Info: opening detail for ' + e.annotation.title);
+					//w.tab.open(ui.tides.getDetail(e.annotation.item));
 
 				}
 			});
 			mapNavibar.addEventListener('scroll', function(_e) {
+				if (annotation_busy == true)
+					return;
+				annotation_busy = true;
+				setTimeout(function() {
+					annotation_busy = false;
+				}, 1000);
 				var newannotation = pins[_e.currentPage];
 				mainMapView.selectAnnotation(newannotation);
 				var region = mainMapView.getRegion();
@@ -214,16 +135,12 @@ ui.map = ( function() {
 					animate : true
 				});
 			});
-			mainMapView.addEventListener('dblclick', function(e) {
-				var detailWindow = ui.tides.getDetail(e.annotation.item);
-				w.tab.open(detailWindow);
-			});
+
 			//
 			// create controls tab and root window
 			//
 			var w = Titanium.UI.createWindow({
 				title : 'Gezeitenkarte@TideRadar',
-				fullscreen : true,
 				barColor : blue,
 				status : {
 					"tracking" : false,
@@ -243,7 +160,7 @@ ui.map = ( function() {
 					mainMapView.setMapType(Ti.Map.STANDARD_TYPE);
 			});
 
-			w.rightNavButton.addEventListener('click', function() {
+			Ti.Android || w.rightNavButton.addEventListener('click', function() {
 				ctrl.stations.getPosition(function(p) {
 					mainMapView.setLocation({
 						latitude : p.latitude,
@@ -252,17 +169,11 @@ ui.map = ( function() {
 						animate : true,
 						longitudeDelta : 0.04
 					});
-					optionsDialogOpts.options[0] = 'Kartenüberblick';
-					dialog.setOptions(optionsDialogOpts.options);
 					status.zoomed = true;
 				});
 			});
 			w.add(mainMapView);
 			w.add(mapNavibar);
-			w.add(metaView);
-			Ti.App.addEventListener('app:init', function() {
-
-			});
 			return w;
 		};
 		return api;

@@ -1,5 +1,0 @@
-// this is a generated file - DO NOT EDIT
-
-COM_TI_CALENDAR_OTHER_LDFLAGS=$(inherited) -framework EventKit
-TI_MAP_OTHER_LDFLAGS=$(inherited) -weak_framework MapKit
-OTHER_LDFLAGS=$(inherited) $(COM_TI_CALENDAR_OTHER_LDFLAGS) $(TI_MAP_OTHER_LDFLAGS) 

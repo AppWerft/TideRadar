@@ -47,14 +47,15 @@ ctrl.stations = ( function() {
 		return this.getFavs().length;
 	};
 
-	api.setFav = function() {
+	api.setFav = function(id) {
+		
 		var now = new Date();
 		var favs = {
 			"alt" : this.getFavsCount(),
 			"neu" : null
 		};
 		var db= Ti.Database.open(Ti.App.Properties.getString('dbname'));
-		var sql = 'UPDATE `stations` SET fav=1, time=' + Math.round(now.getTime()) + ' WHERE id="' + latestid + '"';
+		var sql = 'UPDATE `stations` SET fav=1, time=' + Math.round(now.getTime()) + ' WHERE id="' + id + '"';
 		db.execute(sql);
 		favs.neu = this.getFavsCount();
 		if(favs.alt != favs.neu) {

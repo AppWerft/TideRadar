@@ -1,3 +1,4 @@
+Ti.Map = require('ti.map');
 ui.tides = ( function() {
 		var api = {};
 		api.getDetail = function(item) {
@@ -25,9 +26,7 @@ ui.tides = ( function() {
 				rightNavButton : rightButton
 			});
 			tabGroup.activeTab.open(detailwindow);
-			detailwindow.addEventListener('close', function() {
-				detailwindow = null;
-			});
+
 			ctrl.stations.getWeather(item.gps, function(e) {
 				var hours = e[0].hourly;
 				var now = new Date();
@@ -44,12 +43,11 @@ ui.tides = ( function() {
 				height : 240
 			});
 			scheduler.addEventListener('scroll', function() {
-				hand.hide()
+				hand.hide();
 			});
 			var webview = Ti.UI.createWebView({
 				url : '/html/index.html',
 				opacity : 0.9,
-				width : Ti.UI.FILL,
 				height : 120,
 				bottom : -200,
 				borderRadius : 8
@@ -71,7 +69,7 @@ ui.tides = ( function() {
 
 			});
 			var latte = Ti.UI.createView({
-				backgroundImage : 'assets/leerlatte.png',
+				backgroundImage : '/assets/leerlatte.png',
 				width : 28,
 				height : 366,
 				right : 0,
@@ -92,8 +90,9 @@ ui.tides = ( function() {
 
 			var detailMapView = Ti.Map.createView({
 				height : Ti.UI.FILL,
-				width : '100%',
 				userLocation : true,
+				userLocationButton : false,
+				enableZoomControls : false,
 				mapType : Titanium.Map.HYBRID_TYPE,
 				region : {
 					latitude : parseFloat(item.gps.split(',')[0], 10) + 0.015,
@@ -119,173 +118,151 @@ ui.tides = ( function() {
 			detailwindow.add(hand);
 
 			scheduler.add(bg);
-			var geduld = Ti.UI.createView({
-				width : 260,
-				height : 120,
-				backgroundColor : '#fff',
-				borderWidth : 1,
-				borderColor : 'black',
-				borderRadius : 8,
-				opacity : 0.9,
-				top : 70,
-				left : 10
-
-			});
-			var wartetext = Ti.UI.createLabel({
-				text : 'Hole aktuelle Tidedaten für ' + item.label + "\n\nQuelle:Bundesamt für Seeschifffahrt und Hydrographie Hamburg und Rostock",
-				left : 5,
-				height : '100%',
-				font : {
-					fontSize : 13,
-					fontFamily : 'Copse'
-				}
-			});
-			geduld.add(wartetext);
-			geduld.text = wartetext;
-			detailwindow.add(geduld);
-			geduld.animate(Ti.UI.createAnimation({
-				duration : 400,
-				opacity : 0.8
-			}));
-			detailwindow.add(webview);
-			ctrl.tides.getForcast(item.id, function(datas) {
-				if (datas == null) {
-					alert('Für diesen Messpunkt liegen für das Jahr 2014 leider keine Angaben vor. ');
-					return;
-				}
-				function setLatte(latte, level) {
-					var lattenpositionen = [0, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14];
-					for (var i = 0; i < lattenpositionen.length; i++) {
-						var slot = lattenpositionen[i];
-						var text = Math.round((parseFloat(level, 10) * 100 - slot * 10 + 47) / 10);
-						var color = text > 0 ? 'black' : 'red';
-						text = Math.abs(text);
-						if (text < 10)
-							text = '0' + text;
-						var options = {
-							color : color,
-							font : {
-								fontWeight : 'bold',
-								fontSize : 18,
-								fontFamily : 'SteelfishRg-Bold'
-							},
-							height : 20,
-							top : 5 + 24.5 * slot,
-							text : text,
-						};
-						if (slot % 2) {
-							options.left = 3;
-						} else {
-							options.left = 16;
-						}
-						latte.add(Ti.UI.createLabel(options));
+			
+						//detailwindow.add(webview);
+			Ti.App.Tides.setFav(item.id);
+			Ti.App.Tides.getPrediction(item.id, {
+				onOk : function(tides) {
+					if (tides == null) {
+						alert('Für diesen Messpunkt liegen für das Jahr 2014 leider keine Angaben vor. ');
+						return;
 					}
-					latte.animate(Ti.UI.createAnimation({
-						right : 0
-					}));
-					hand.animate(Ti.UI.createAnimation({
-						top : 110,
-						right : 5,
-						duration : 3000
-					}));
-				}
-
-				function setPin() {
-					var date = new Date().toString('HH:mm');
-					var level = (datas.current.level) ? ' Pegel: ' + datas.current.level + ' m' : '';
-					var subtitle = date + ' Uhr, ' + level + datas.current.text;
-					if (pin)
-						pin.subtitle = subtitle;
-				}
-
-				if (!isNaN(datas.current.level)) {
-					scheduler.addEventListener('click', function() {
-						ctrl.tides.getCurveData(item.id, function(js) {
-							webview.evalJS(js);
-							webview.animate(Ti.UI.createAnimation({
-								bottom : 0,
-								duration : 400
-							}));
-						});
-
-					});
-				}
-				var sections = [];
-				if (datas == null) {
-					alert('Keine Tidedaten vorhanden – offline?');
-					geduld.hide();
-				}
-				for (var s = 0; s < datas.daysets.length; s++) {
-					sections[s] = Ti.UI.createTableViewSection({
-						headerTitle : datas.daysets[s].day
-					});
-					var rows = [];
-					for (var i = 0; i < datas.daysets[s].events.length; i++) {
-						var event = datas.daysets[s].events[i];
-						var color = (event.ispast) ? '#aaa' : '#000';
-						var daylabel = Ti.UI.createLabel({
-							text : event.time + ' Uhr',
-							left : 10,
-							color : color,
-							top : 5,
-							height : 20,
-							font : {
-								fontFamily : 'Copse'
+					function setLatte(latte, level) {
+						var lattenpositionen = [0, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14];
+						for (var i = 0; i < lattenpositionen.length; i++) {
+							var slot = lattenpositionen[i];
+							var text = Math.round((parseFloat(level, 10) * 100 - slot * 10 + 47) / 10);
+							var color = text > 0 ? 'black' : 'red';
+							text = Math.abs(text);
+							if (text < 10)
+								text = '0' + text;
+							var options = {
+								color : color,
+								font : {
+									fontWeight : 'bold',
+									fontSize : '18dp',
+									fontFamily : 'SteelfishRg-Bold'
+								},
+								height : '20dp',
+								top : 5 + 24.5 * slot + 'dp',
+								text : text,
+							};
+							if (slot % 2) {
+								options.left = '3dp';
+							} else {
+								options.left = '16dp';
 							}
-						});
-						var typelabel = Ti.UI.createLabel({
-							text : (event.type == 'HW') ? 'Hochwasser' : 'Niedrigwasser',
-							left : 10,
-							color : color,
-							font : {
-								fontFamily : 'Copse'
-							},
-							bottom : 5,
-							height : 20
-						});
-						var levellabel = Ti.UI.createLabel({
-							text : event.level,
-							color : color,
-							font : {
-								fontWeight : 'bold',
-								fontSize : 28,
-								fontFamily : 'Copse'
-
-							},
-							height : 30,
-							width : '100%',
-							textAlign : 'right',
-							right : 40,
-							bottom : 10
-						});
-						var row = Ti.UI.createTableViewRow({
-							height : 50,
-							width : '100%'
-						});
-						row.add(daylabel);
-						row.add(levellabel);
-						row.add(typelabel);
-						sections[s].add(row);
+							latte.add(Ti.UI.createLabel(options));
+						}
+						latte.animate(Ti.UI.createAnimation({
+							right : 0
+						}));
+						hand.animate(Ti.UI.createAnimation({
+							top : '110dp',
+							right : '5dp',
+							duration : 3000
+						}));
 					}
-					scheduler.setData(sections);
-					bg.animate(Ti.UI.createAnimation({
-						duration : 2800,
-						top : 50
-					}));
-					geduld.hide();
-				}
-				if (!isNaN(datas.current.level)) {
-					var phi = (datas.current.direction == '+') ? -10 : 10;
-					cron = setTimeout(function() {
-						setLatte(latte, datas.current.level);
-						setPin();
-						hand.transform = Ti.UI.create2DMatrix().rotate(phi);
-					}, 2000);
-				} else {
-					latte.hide();
-				}
-				if (tabGroup.tabs.length == 3) {
-					tabGroup.addTab(tab4);
+
+					function setPin() {
+						var date = new Date().toString('HH:mm');
+						var level = (tides.current.level) ? ' Pegel: ' + tides.current.level + ' m' : '';
+						var subtitle = date + ' Uhr, ' + level + tides.current.text;
+						if (pin)
+							pin.subtitle = subtitle;
+					}
+
+					/*
+					 if (!isNaN(datas.current.level)) {
+					 scheduler.addEventListener('click', function() {
+					 ctrl.tides.getCurveData(item.id, function(js) {
+					 webview.evalJS(js);
+					 webview.animate(Ti.UI.createAnimation({
+					 bottom : 0,
+					 duration : 400
+					 }));
+					 });
+
+					 });
+					 }*/
+					var sections = [];
+					if (tides == null) {
+						alert('Keine Tidedaten vorhanden – offline?');
+						
+					}
+					for (var s = 0; s < tides.predictions.length; s++) {
+						sections[s] = Ti.UI.createTableViewSection({
+							headerTitle : tides.predictions[s].label
+						});
+						var rows = [];
+						for (var i = 0; i < tides.predictions[s].tides.length; i++) {
+							var event = tides.predictions[s].tides[i];
+							var color = event["in_past"] ? '#bbb' : 'black';
+							var daylabel = Ti.UI.createLabel({
+								text : event['i18n'] + ' Uhr',
+								left : 10,
+								color : color,
+								top : 5,
+								height : 20,
+								font : {
+									fontFamily : 'Copse'
+								}
+							});
+							var typelabel = Ti.UI.createLabel({
+								text : (event.direction == 'HW') ? 'Hochwasser' : 'Niedrigwasser',
+								left : 10,
+								color : color,
+								font : {
+									fontFamily : 'Copse'
+								},
+								bottom : 5,
+								height : 20
+							});
+							var levellabel = Ti.UI.createLabel({
+								text : event.level,
+								color : color,
+								font : {
+									fontWeight : 'bold',
+									fontSize : 28,
+									fontFamily : 'Copse'
+
+								},
+								height : 30,
+								width : '100%',
+								textAlign : 'right',
+								right : 40,
+								bottom : 10
+							});
+							var row = Ti.UI.createTableViewRow({
+								height : '50dp',
+								backgroundColor : 'white'
+							});
+							row.add(daylabel);
+							row.add(levellabel);
+							row.add(typelabel);
+							sections[s].add(row);
+						}
+						scheduler.setData(sections);
+						bg.animate(Ti.UI.createAnimation({
+							duration : 2800,
+							top : '50dp'
+						}));
+						
+					}
+
+					if (!isNaN(tides.current.level)) {
+						var phi = (tides.current.direction == '+') ? -10 : 10;
+						cron = setTimeout(function() {
+							setLatte(latte, tides.current.level);
+							setPin();
+							hand.transform = Ti.UI.create2DMatrix().rotate(phi);
+						}, 2000);
+					} else {
+						latte.hide();
+					}
+					if (tabGroup.tabs.length == 3) {
+						tabGroup.addTab(tab4);
+					}
 				}
 			});
 			detailwindow.addEventListener('close', function(e) {

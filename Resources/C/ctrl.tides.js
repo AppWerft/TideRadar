@@ -127,8 +127,10 @@ ctrl.tides = ( function() {
 			var self = this;
 			ctrl.stations.setLatest(id);
 			var db= Ti.Database.open(Ti.App.Properties.getString('dbname'));
+			// all datas from one day and station
 			var sql = 'SELECT sets, daysets FROM `stations` WHERE id="' + id + '" AND day="' + new Date().toString('yyyy-MM-dd') + '"';
 			var resultSet = db.execute(sql);
+			 // there are datas:
 		     if(resultSet.isValidRow()) {
 				try {
 					var sets = JSON.parse(resultSet.fieldByName('sets'));
@@ -145,6 +147,7 @@ ctrl.tides = ( function() {
 						return;
 					}
 				} catch(E) {
+					// reset all datas of one station
 					var sql = 'UPDATE `stations` SET day=NULL, sets=NULL, daysets=NULL WHERE id="' + id + '"';
 					ctrl.dbconn.execute(sql);
 					Ti.API.log(E);
@@ -208,6 +211,7 @@ ctrl.tides = ( function() {
 					}
 				}
 				var sql = 'UPDATE `stations` SET day="' + new Date().toString('yyyy-MM-dd') + '", sets=\'' + JSON.stringify(sets) + '\',daysets=\'' + JSON.stringify(daysets) + '\' WHERE id="' + id + '"';
+				console.log(sql);
 				db.execute(sql);
 				var current = self.getCurrent(sets, null);
 				var res = {

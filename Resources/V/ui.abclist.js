@@ -8,13 +8,10 @@ ui.loclist = ( function() {
 			});
 			var search = Titanium.UI.createSearchBar();
 			var locliste = Ti.UI.createTableView({
-				search : search,
-				height : '100%',
 				backgroundImage : 'assets/bunthaus1.jpg'
 			});
 			locliste.addEventListener('click', function(e) {
-				var detailwindow = ui.tides.getDetail(e.rowData.item);
-
+				var detailwindow = ui.tides.getDetail(e.row.item);
 			});
 			var locs = ctrl.stations.getAlfaList();
 			var sections = [];
@@ -33,29 +30,27 @@ ui.loclist = ( function() {
 				for (var i = 0; i < locs[s].length; i++) {
 					rowcounter++;
 					row = Ti.UI.createTableViewRow({
-						height : '40dp',
+						height : '50dp',
+						backgroundColor:'white',
 						item : locs[s][i],
 						hasChild : true,
 					});
 					var label = Ti.UI.createLabel({
 						text : locs[s][i].label,
-						height : '20dp',
-						top : '5dp',
 						textAlign : 'left',
 						color : '#444',
 						font : {
-							fontSize : '16dp',
+							fontSize : '18dp',
 							fontWeight : 'bold',
 							fontFamily : 'Copse'
 						},
-						left : 10
+						left : '10dp'
 					});
 					row.add(label);
 					sections[ndx].add(row);
 				}
 				ndx++;
 			}
-
 			locliste.data = sections;
 			locliste.index = index;
 			w.add(locliste);
