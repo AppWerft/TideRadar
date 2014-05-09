@@ -49,6 +49,6 @@ exports.create = function(item) {
 	}
 	locliste.data = sections;
 	locliste.index = index;
-	w.add(locliste);
-	return w;
+	self.add(locliste);
+	return self;
 };

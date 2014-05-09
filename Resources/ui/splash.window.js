@@ -7,24 +7,22 @@ exports.create = function() {
 		fullscreen : true
 	});
 	self.spinner = Ti.UI.createActivityIndicator({
-		style : Ti.Android ? Ti.UI.ActivityIndicatorStyle.PLAIN : Ti.UI.iPhone.ActivityIndicatorStyle.PLAIN,
-		message : 'Hole Daten vom Bundesamt für Seeschifffahrt und Hydrographie',
-		backgroundColor : 'white',
-		width : '200',
+		style : Ti.Android ? Ti.UI.ActivityIndicatorStyle.BIG : Ti.UI.iPhone.ActivityIndicatorStyle.PLAIN,
+		message : 'Hole Daten vom Bundesamt\nfür Seeschifffahrt und Hydrographie',
+		backgroundColor : Ti.App.CONF.blue,
+		width : '90%',
 		height : '120dp',
-		color : 'black',
+		color : 'white',
 		padding : 10,
 		opacity : 0.8,
-		bottom : 120,
+		bottom : 60,
 		borderRadius : 8,
 		borderColor : 'gray',
 		borderWidth : 1,
-		animation : true,
 		font : {
 			fontFamily : Ti.App.CONF.hausschrift,
-			fontSize : 11
-		},
-		animated : true
+			fontSize : '12dp'
+		}
 	});
 	self.spinner.add(Ti.UI.createImageView({
 		image : '/assets/bshlogo.png',

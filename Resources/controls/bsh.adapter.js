@@ -104,11 +104,11 @@ var getCurrent = function(sets) {
 TideAdapter.prototype = {
 	getAlfaList : function() {
 		var out = {};
-		for(var i = 0; i < locations.length; i++) {
+		for (var i = 0; i < this.locations.length; i++) {
 			var fc = this.locations[i].label.substr(0, 1);
-			if( typeof (out[fc]) != 'object')
+			if ( typeof (out[fc]) != 'object')
 				out[fc] = [];
-			out[fc].push(locations[i]);
+			out[fc].push(this.locations[i]);
 		}
 		return out;
 	},
@@ -147,7 +147,9 @@ TideAdapter.prototype = {
 					db.close();
 					var stop = new Date().getTime();
 					_onload({
-						ok : true
+						ok : true,
+						total : val.length,
+						latest : 'Montag'
 					});
 				}
 			},
@@ -156,8 +158,8 @@ TideAdapter.prototype = {
 					message : 'Nicht im Netz: benutzte alte Daten'
 				}).show();
 				_onload({
-						ok : false
-					});
+					ok : false
+				});
 			}
 		});
 		xhr.open('GET', Ti.App.Properties.getString('ENDPOINT'));

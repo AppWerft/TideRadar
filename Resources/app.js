@@ -8,15 +8,15 @@ Ti.App.Moment = require('vendor/moment');
 
 var splashwindow = require('ui/splash.window').create();
 splashwindow.open();
-Ti.App.TideRadar.loadStations(null, {
-	onload : function(_e) {
-		if (_e.ok) {
-			tabgroup.open({
-				transition : Ti.Android ? null : Ti.UI.iPhone.AnimationStyle.FLIP_FROM_RIGHT,
-				duration : 600,
-			});
-			splashwindow.close();
-		}
+
+var tabgroup = require('ui/tabgroup').create();
+Ti.App.TideRadar.loadStations(null, function(_e) {
+	if (_e.ok) {
+		tabgroup.open({
+			transition : Ti.Android ? null : Ti.UI.iPhone.AnimationStyle.FLIP_FROM_RIGHT,
+			duration : 600,
+		});
+		splashwindow.close();
 	}
 });
 /*
@@ -31,5 +31,4 @@ Ti.App.TideRadar.loadStations(null, {
  Ti.include('V/ui.weather.js');
  */
 
-var tabgroup = require('ui/tabgroup').create();
 

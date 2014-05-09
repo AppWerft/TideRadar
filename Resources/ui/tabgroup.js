@@ -3,23 +3,19 @@ exports.create = function() {
 		fullscreen : true,
 		exitOnClose : true
 	});
-	var tabs = {
-		map : Ti.UI.createTab({
-			icon : Ti.Android ? null : '/assets/map.png',
-			title : 'Karte',
-			window : require('ui/map.window').create()
-		}),
-		abclist : Titanium.UI.createTab({
-			icon : Ti.Android ? null : 'assets/list.png',
-			title : 'Alle Meßstationen',
-			window : require('ui/abclist').create()
-		}),
-		radar : Titanium.UI.createTab({
-			icon : Ti.Android ? null : 'assets/cloud.png',
-			title : 'Regenradarfilm',
-			window : require('ui/rainradar.window').create()
-		})
-	};
+	var tabs = [Ti.UI.createTab({
+		icon : Ti.Android ? null : '/assets/map.png',
+		title : 'Karte',
+		window : require('ui/map.window').create()
+	}), Titanium.UI.createTab({
+		icon : Ti.Android ? null : 'assets/list.png',
+		title : 'Alle Meßstationen',
+		window : require('ui/abclist.window').create()
+	}), Titanium.UI.createTab({
+		icon : Ti.Android ? null : 'assets/cloud.png',
+		title : 'Regenradarfilm',
+		window : require('ui/rainradar.window').create()
+	})];
 	/*
 	 var tab2 =
 
@@ -40,12 +36,10 @@ exports.create = function() {
 	 visible : false,
 	 window : ui.favs.getFavListe()
 	 });*/
-	for (var key in tabs) {
-		self.add(tabs[key]);
+	for (var i=0; i<tabs.length;i++) {
+		self.addTab(tabs[i]);
 	}
-	//	self.addTab(tab2);
-	//	self.addTab(tab3);
-	//	self.addTab(tab4);
+	
 	self.addEventListener("open", function() {
 		var activity = self.getActivity();
 		if (activity && activity.actionBar) {
@@ -69,4 +63,5 @@ exports.create = function() {
 	 tab5.setBadge(favstotal);
 	 }
 	 }*/
+	return self;
 };

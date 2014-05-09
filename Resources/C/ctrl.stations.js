@@ -111,16 +111,7 @@ ctrl.stations = ( function() {
 			return stations;
 	};
 
-	api.getAlfaList = function() {
-		var out = {};
-		for(var i = 0; i < locations.length; i++) {
-			var fc = locations[i].label.substr(0, 1);
-			if( typeof (out[fc]) != 'object')
-				out[fc] = [];
-			out[fc].push(locations[i]);
-		}
-		return out;
-	};
+	
 	api.getPosition = function(callback) {
 		Ti.Geolocation.purpose = "Ermittle Position";
 		Ti.Geolocation.getCurrentPosition(function(e) {
