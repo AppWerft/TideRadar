@@ -11,8 +11,13 @@ exports.create = function() {
 		}),
 		abclist : Titanium.UI.createTab({
 			icon : Ti.Android ? null : 'assets/list.png',
-			title : 'ABC',
+			title : 'Alle Meßstationen',
 			window : require('ui/abclist').create()
+		}),
+		radar : Titanium.UI.createTab({
+			icon : Ti.Android ? null : 'assets/cloud.png',
+			title : 'Regenradarfilm',
+			window : require('ui/rainradar.window').create()
 		})
 	};
 	/*
