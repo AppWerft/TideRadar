@@ -2,9 +2,11 @@ Ti.App.CONF = {
 	blue : '#013B69',
 	hausschrift : 'Cops'
 };
+Ti.App.Moment = require('vendor/moment');
+Ti.App.Moment.lang('de');
 
 Ti.App.TideRadar = new (require('controls/bsh.adapter'))();
-Ti.App.Moment = require('vendor/moment');
+
 
 var splashwindow = require('ui/splash.window').create();
 splashwindow.open();
@@ -17,6 +19,10 @@ Ti.App.TideRadar.loadStations(null, function(_e) {
 			duration : 600,
 		});
 		splashwindow.close();
+		tabgroup.fireEvent('setTitles', {
+			title : 'TideRadar',
+			subtitle : _e.total + ' Messwerte bis ' + _e.latest
+		});
 	}
 });
 /*
@@ -30,5 +36,4 @@ Ti.App.TideRadar.loadStations(null, function(_e) {
  Ti.include('V/ui.favs.js');
  Ti.include('V/ui.weather.js');
  */
-
 

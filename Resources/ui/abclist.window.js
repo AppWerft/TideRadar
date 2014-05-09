@@ -7,7 +7,8 @@ exports.create = function(item) {
 		backgroundImage : '/assets/bunthaus1.jpg'
 	});
 	locliste.addEventListener('click', function(e) {
-		//var detailwindow = ui.tides.getDetail(e.row.item);
+		var win = require('ui/stationhomepage.window').create(e.row.item);
+		(Ti.Android) ? win.open(): self.tab.open(win);
 	});
 	var locs = Ti.App.TideRadar.getAlfaList();
 	var sections = [];

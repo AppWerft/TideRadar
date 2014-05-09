@@ -27,16 +27,7 @@ ctrl.stations = ( function() {
 	}
 	resultSet.close();
 	db.close();
-	var getDistance = function(lat1, lon1, lat2, lon2) {
-		var R = 6371000;
-		// m (change this constant to get miles)
-		var dLat = (lat2 - lat1) * Math.PI / 180;
-		var dLon = (lon2 - lon1) * Math.PI / 180;
-		var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-		var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-		var d = R * c;
-		return Math.round(d);
-	};
+	
 	api.getAllLocations = function() {
 		return locations;
 	};
@@ -91,25 +82,7 @@ ctrl.stations = ( function() {
 		else
 			return stations;
 	};
-	api.getLongitudeList = function(callback) {
-		var stations = locations.slice(0);
-		for(var i = 0; i < stations.length; i++) {
-			stations[i].lng = stations[i].gps.split(',')[1];
-		}
-		stations.sort(function(a, b) {
-			if(a.lng < b.lng) {
-				return -1;
-			}
-			if(a.lng > b.lng) {
-				return 1;
-			}
-			return 0;
-		});
-		if(callback != null)
-			callback(stations);
-		else
-			return stations;
-	};
+	
 
 	
 	api.getPosition = function(callback) {
@@ -192,38 +165,6 @@ ctrl.stations = ( function() {
 		xhr.open('GET', url);
 		xhr.send();
 	};
-	api.getDistList = function(callback) {
-		var stations = locations.slice(0);
-		Ti.Geolocation.purpose = "Ermittle Position";
-		Ti.Geolocation.preferredProvider = Ti.Geolocation.PROVIDER_GPS;
-		Ti.Geolocation.getCurrentPosition(function(e) {
-			if(e.error) {
-				var mylat = 53.5;
-				var mylng = 10;
-			} else {
-				var mylat = e.coords.latitude;
-				var mylng = e.coords.longitude;
-			}
-			for(var i = 0; i < stations.length; i++) {
-				stations[i].dist = getDistance(stations[i].gps.split(',')[0], stations[i].gps.split(',')[1], mylat, mylng);
-			}
-			stations.sort(function(a, b) {
-				if(a.dist < b.dist) {
-					return -1;
-				}
-				if(a.dist > b.dist) {
-					return 1;
-				}
-				return 0;
-			});
-			Ti.App.addEventListener('mapblur', function() {
-				for(var i = 0; i < 17; i++) {
-					ctrl.tides.getForcast(stations[i].id, function(datas) {
-					});
-				}
-			});
-			callback(stations);
-		});
-	};
+	
 	return api;
 }());

@@ -35,16 +35,13 @@ exports.create = function() {
 		console.log(Ti.Platform.displayCaps.platformWidth);
 		console.log(Ti.Platform.displayCaps.logicalDensityFactor);
 		var scale = Ti.Platform.displayCaps.logicalDensityFactor * w / 540;
-		console.log('SCALE' + scale);
-		var transform = Ti.UI.create2DMatrix().scale(scale).translate(w - 540, w - 500);
 		var radarview = Ti.UI.createWebView({
 			top : 0,
+			bottom : 0,
 			backgroundColor : 'gray',
 			left : 0,
 			disableBounce : true,
 			scalesPageToFit : false,
-			//touchEnabled : false,
-			//transform : transform,
 			url : 'http://familientagebuch.de/tideradar/images/radar.gif'
 		});
 		//radarview.add(Ti.UI.createView());

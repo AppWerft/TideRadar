@@ -8,12 +8,16 @@ exports.create = function() {
 		title : 'Karte',
 		window : require('ui/map.window').create()
 	}), Titanium.UI.createTab({
+		icon : Ti.Android ? null : 'assets/location.png',
+		title : 'Meine Umgebung',
+		window : require('ui/distlist.window').create()
+	}), Titanium.UI.createTab({
 		icon : Ti.Android ? null : 'assets/list.png',
 		title : 'Alle Meßstationen',
 		window : require('ui/abclist.window').create()
 	}), Titanium.UI.createTab({
-		icon : Ti.Android ? null : 'assets/cloud.png',
-		title : 'Regenradarfilm',
+		icon : Ti.Android ? null : 'assets/weather.png',
+		title : 'Regenradar',
 		window : require('ui/rainradar.window').create()
 	})];
 	/*
@@ -36,16 +40,28 @@ exports.create = function() {
 	 visible : false,
 	 window : ui.favs.getFavListe()
 	 });*/
-	for (var i=0; i<tabs.length;i++) {
+	for (var i = 0; i < tabs.length; i++) {
 		self.addTab(tabs[i]);
 	}
-	
-	self.addEventListener("open", function() {
-		var activity = self.getActivity();
-		if (activity && activity.actionBar) {
-			activity.actionBar.setTitle('TideRadar');
-		}
-	});
+	if (Ti.Android) {
+		self.addEventListener("setTitles", function(_titles) {
+			setTimeout(function() {
+				var activity = self.getActivity();
+				if (activity && activity.actionBar) {
+					_titles.title && activity.actionBar.setTitle(_titles.title);
+					_titles.subtitle && activity.actionBar.setSubtitle(_titles.subtitle);
+
+				}
+			}, 700);
+		});
+		self.addEventListener("open", function() {
+			var activity = self.getActivity();
+			if (activity && activity.actionBar) {
+				activity.actionBar.setTitle('TideRadar');
+				activity.actionBar.setSubtitle('warte auf Daten vom Bundesamt …');
+			}
+		});
+	}
 	/*
 	 var favstotal = ctrl.stations.getFavsCount();
 
