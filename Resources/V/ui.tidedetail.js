@@ -16,14 +16,8 @@ ui.tides = ( function() {
 					tabGroup.activeTab.open(ui.detail.getWeatherWindow(rightButton.weather));
 				}
 			});
-			var detailwindow = Ti.UI.createWindow({
-				title : item.label,
-				barColor : blue,
-				title : item.label,
-				leftNavButton : Ti.UI.createButton({
-					systemButton : Ti.UI.iPhone.SystemButton.REPLY
-				}),
-				rightNavButton : rightButton
+			var detailwindow = require('ui/window').create({
+				title : item.label
 			});
 			tabGroup.activeTab.open(detailwindow);
 
@@ -35,9 +29,9 @@ ui.tides = ( function() {
 				ctrl.cachedImageView('cache', hours[index].weatherIconUrl[0].value, rightButton, true);
 				rightButton.weather = hours;
 			});
-			detailwindow.leftNavButton.addEventListener('click', function() {
+			/*detailwindow.leftNavButton.addEventListener('click', function() {
 				detailwindow.close();
-			});
+			});*/
 			var scheduler = Ti.UI.createTableView({
 				top : 0,
 				height : 240
@@ -118,8 +112,8 @@ ui.tides = ( function() {
 			detailwindow.add(hand);
 
 			scheduler.add(bg);
-			
-						//detailwindow.add(webview);
+
+			//detailwindow.add(webview);
 			Ti.App.Tides.setFav(item.id);
 			Ti.App.Tides.getPrediction(item.id, {
 				onOk : function(tides) {
@@ -188,7 +182,7 @@ ui.tides = ( function() {
 					var sections = [];
 					if (tides == null) {
 						alert('Keine Tidedaten vorhanden – offline?');
-						
+
 					}
 					for (var s = 0; s < tides.predictions.length; s++) {
 						sections[s] = Ti.UI.createTableViewSection({
@@ -247,7 +241,7 @@ ui.tides = ( function() {
 							duration : 2800,
 							top : '50dp'
 						}));
-						
+
 					}
 
 					if (!isNaN(tides.current.level)) {

@@ -3,6 +3,8 @@ var TideAdapter = function() {
 	db.execute('DROP TABlE IF EXISTS tides');
 	db.execute('CREATE TABLE tides (id TEXT, ts TEXT,ty TEXT,level TEXT)');
 	db.close();
+	var jsonfile = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, '/M/locations.json');
+	this.locations = JSON.parse(jsonfile.read());
 	return this;
 };
 /* Helper function to calculate datas for now: */
@@ -100,7 +102,17 @@ var getCurrent = function(sets) {
 };
 
 TideAdapter.prototype = {
-	loadStations : function(_args,_callbacks) {
+	getAlfaList : function() {
+		var out = {};
+		for(var i = 0; i < locations.length; i++) {
+			var fc = this.locations[i].label.substr(0, 1);
+			if( typeof (out[fc]) != 'object')
+				out[fc] = [];
+			out[fc].push(locations[i]);
+		}
+		return out;
+	},
+	loadStations : function(_args, _onload) {
 		var that = this;
 		var start = new Date().getTime();
 		var xhr = Ti.Network.createHTTPClient({
@@ -112,13 +124,14 @@ TideAdapter.prototype = {
 					var stop = new Date().getTime();
 				} catch(E) {
 					console.log('Error 110: ' + E);
-					_callbacks.onerror();
+					_onload({
+						ok : false
+					});
 				}
 				if (stations != null) {
 					var count = 0;
 					var db = Ti.Database.open(Ti.App.Properties.getString('dbname'));
 					db.execute("BEGIN IMMEDIATE TRANSACTION");
-					console.log('Info: count of stations=' + stations.length);
 					Ti.Android && Ti.UI.createNotification({
 						message : stations.length + ' frische Tidedaten importiert.'
 					}).show();
@@ -133,15 +146,18 @@ TideAdapter.prototype = {
 					db.execute("COMMIT TRANSACTION");
 					db.close();
 					var stop = new Date().getTime();
-					_callbacks.onload();
+					_onload({
+						ok : true
+					});
 				}
 			},
 			onerror : function(e) {
 				Ti.Android && Ti.UI.createNotification({
-						message : 'Nicht im Netz: benutzte alte Daten'
-					}).show();
-				console.log('Error132: ' + e);
-				_callbacks.onerror();
+					message : 'Nicht im Netz: benutzte alte Daten'
+				}).show();
+				_onload({
+						ok : false
+					});
 			}
 		});
 		xhr.open('GET', Ti.App.Properties.getString('ENDPOINT'));

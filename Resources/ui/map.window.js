@@ -1,38 +1,28 @@
 Ti.Map = require('ti.map');
 var blue = '#479CFD';
-Ti.include('C/date.js');
+require('vendor/moment');
 
-exports.create = function(ctrl) {
-	function setSubtitleofAnnotation(datas, pin) {
-		var date = new Date().toString('HH:mm');
+exports.create = function() {
+	function setSubtitleofAnnotation(datas, pin) {/*
+		var date = moment().format('HH:mm');
 		var pegel = isNaN(datas.current.level) ? '' : 'Pegel: ' + datas.current.level + ' m';
 		var subtitle = date + ' Uhr,  ' + pegel + datas.current.text;
 		if (pin)
-			pin.subtitle = subtitle;
+			pin.subtitle = subtitle;*/
 	}
 
 	var self = Ti.UI.createWindow({
 		title : 'Gezeitenkarte@TideRadar',
-		barColor : blue,
-		status : {
-			"tracking" : false,
-			"zoomed" : false
-		},
-
+		barColor : blue
 	});
 	var pins = [];
 	var pin;
-	var status = {
-		"zoomed" : false,
-		"monitor" : false,
-		"record" : false,
-		"cron" : null
-	};
+	console.log(Ti.App.TideRadar);
 	var annotation_busy = false;
-	var mainMapView = Ti.Map.createView({
-		userLocation : true,
+	self.mapview = require('ti.map').createView({
+		userLocation : false,
 		enableZoomControls : false,
-		mapType : Ti.Map.HYBRID_TYPE,
+		mapType : require('ti.map').HYBRID_TYPE,
 		region : {
 			latitude : 53.55,
 			longitude : 10,
@@ -40,7 +30,7 @@ exports.create = function(ctrl) {
 			longitudeDelta : 0.7
 		}
 	});
-	self.add(mainMapView);/*
+	self.add(self.mapview);/*
 	var mapNavibar = Ti.UI.createScrollableView({
 		bottom : -50,
 		height : 50,

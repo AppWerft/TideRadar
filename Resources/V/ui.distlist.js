@@ -59,7 +59,7 @@ ui.dist = ( function() {
 						left : '10dp'
 					});
 					rows[i].add(subtitle);
-					Ti.App.Tides.getPrediction(locs[i].id, {
+					Ti.App.TideRadar.getPrediction(locs[i].id, {
 						onOk : function(_prediction) {
 							var text = 'Tide: ';
 							if (!isNaN(_prediction.current.level))
