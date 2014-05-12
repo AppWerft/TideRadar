@@ -1,13 +1,14 @@
 Ti.Map = require('ti.map');
 exports.create = function() {
 	function setSubtitleofAnnotation(data, annotation) {
-		
+
 		var pegel = isNaN(data.current.level) ? '' : 'Pegel: ' + data.current.level + ' m';
 		var subtitle = Ti.App.Moment().format('HH:mm') + ' Uhr,  ' + pegel + data.current.text;
 		if (annotation)
 			annotation.subtitle = subtitle;
 	}
-	var annotations=[], naviviews=[], annotation_busy = false;
+
+	var annotations = [], naviviews = [], annotation_busy = false;
 	var self = Ti.UI.createWindow({
 		title : 'Gezeitenkarte@TideRadar',
 		barColor : Ti.App.CONF.blue
@@ -66,24 +67,34 @@ exports.create = function() {
 
 	});
 	var locs = Ti.App.TideRadar.getLongitudeList();
-	for (var i = 0; i < locs.length; i++) {
-		annotations.push(require('ui/annotation.widget').create(locs[i], i));
-		naviviews.push(Ti.UI.createLabel({
-			textAlign : 'center',
-			font : {
-				fontFamily : 'Copse',
-				fontSize : 22
-			},
-			color : 'white',
-			height : 23,
-			width : '90%',
-			text : locs[i].label
-		}));
-	}
+	setTimeout(function() {
+		for (var i = 0; i < locs.length; i++) {
+			annotations.push(require('ui/annotation.widget').create(locs[i], i));
+			naviviews.push(Ti.UI.createLabel({
+				textAlign : 'center',
+				font : {
+					fontFamily : 'Copse',
+					fontSize : 22
+				},
+				color : 'white',
+				height : 23,
+				width : '90%',
+				text : locs[i].label
+			}));
+		}
+
+		var ferries = Ti.App.Ferries.getAll();
+		for (var i = 0; i < ferries.length; i++) {
+			var ferry = require('ui/ferryparts.widget').create(ferries[i]);
+			annotations.push(ferry.annotation);
+			self.mapview.addRoute(ferry.route);
+		}
+		self.mapview.addAnnotations(annotations);
+	}, 3000);
 	self.mapnavibar.views = naviviews;
-	self.mapview.addAnnotations(annotations);
+
 	self.mapview.addEventListener('click', function(_e) {
-		if (_e.clicksource == 'pin') {
+		if (_e.clicksource == 'pin' && _e.annotation.type == 'station') {
 			annotation_busy = true;
 			setTimeout(function() {
 				annotation_busy = false;
@@ -96,7 +107,7 @@ exports.create = function() {
 			}));
 			Ti.App.TideRadar.getPrediction(_e.annotation.itemId, {
 				onOk : function(_prediction) {
-					_prediction && setSubtitleofAnnotation(_prediction,_e.annotation);
+					_prediction && setSubtitleofAnnotation(_prediction, _e.annotation);
 				}
 			});
 		}

@@ -71,9 +71,6 @@ exports.create = function(item) {
 			touchEnabled : true,
 		});
 
-		latte.addEventListener('click', function() {
-			require('ui/weather.window').create(item.id).open();
-		});
 		var hand = Ti.UI.createImageView({
 			image : '/assets/hand.png',
 			width : 40,
@@ -92,8 +89,8 @@ exports.create = function(item) {
 			region : {
 				latitude : parseFloat(item.gps.split(',')[0], 10) + 0.015,
 				longitude : item.gps.split(',')[1],
-				latitudeDelta : 0.2,
-				longitudeDelta : 0.2
+				latitudeDelta : 1,
+				longitudeDelta : 1
 			},
 			top : '50%'
 		});
@@ -246,7 +243,6 @@ exports.create = function(item) {
 					}));
 
 				}
-
 				if (!isNaN(tides.current.level)) {
 					var phi = (tides.current.direction == '+') ? -10 : 10;
 					cron = setTimeout(function() {
@@ -262,6 +258,21 @@ exports.create = function(item) {
 			console.log('Info: detailwindow closed');
 		});
 	}, 100);
+	Ti.Android && self.addEventListener('open', function() {
+		var activity = self.getActivity();
+		if (!activity.actionBar)
+			return;
+		activity.onCreateOptionsMenu = function(e) {
+			e.menu.add({
+				title : 'Wetter',
+				showAsAction : Ti.Android.SHOW_AS_ACTION_IF_ROOM,
+				icon : Ti.App.Android.R.drawable.ic_action_weather
+			}).addEventListener("click", function() {
+				require('ui/weather.window').create(item.id, item.label).open();
+			});
+
+		};
+	});
 	return self;
 };
 

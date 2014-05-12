@@ -2,7 +2,7 @@ exports.create = function() {
 	function fillListe(locs) {
 		var rows = [];
 		liste.setData(rows);
-		for (var i = 0; i < locs.length && i < 56; i++) {
+		for (var i = 0; i < locs.length && i < 16; i++) {
 			liste.appendRow(require('ui/distlist.row').create(locs[i]));
 		}
 		//liste.setData(rows);

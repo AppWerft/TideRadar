@@ -7,6 +7,7 @@ exports.create = function(loc,i) {
 		title : loc.label,
 		subtitle : 'Pegeldaten unbekannt',
 		itemId : loc.id,
+		type: 'station',
 		index : i || 1
 	});
 };

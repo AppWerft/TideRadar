@@ -1,8 +1,9 @@
 var TideAdapter = function() {
-	var jsonfile = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, '/M/locations.json');
+	var jsonfile = Ti.Filesystem.getFile(Ti.Filesystem.resourcesDirectory, '/models/locations.json');
 	this.locations = JSON.parse(jsonfile.read());
 	var db = Ti.Database.open(Ti.App.Properties.getString('dbname'));
 	db.execute('CREATE TABLE IF NOT EXISTS favs (id TEXT, atime TEXT)');
+	db.execute('CREATE TABLE IF NOT EXISTS tides (id TEXT, ts TEXT,ty TEXT,level TEXT)');
 	db.close();
 	return this;
 };
@@ -170,10 +171,27 @@ TideAdapter.prototype = {
 			callback(stations);
 		});
 	},
-	loadStations : function(_args, _onload) {
+	getWeather : function(_id) {
+		var datum = Ti.App.Moment().format('YYYY-MM-DD');
+		var weather = Ti.App.Properties.getList(_id);
+		return weather;
+	},
+	loadStations : function(_args, _callbacks) {
 		var that = this;
+		if (this.getStationsStatus().days == Ti.App.Properties.getString('DAYS')) {
+			_callbacks.onload({
+				ok : true
+			});
+			return;
+		};
 		var start = new Date().getTime();
 		var xhr = Ti.Network.createHTTPClient({
+			ondatastream : function(_e) {
+				if (_e.progress < 0)
+					_callbacks.onprogress(-_e.progress / 610000);
+				else
+					_callbacks.onprogress(_e.progress);
+			},
 			onload : function() {
 				var stations = null;
 				var stop = new Date().getTime();
@@ -181,7 +199,7 @@ TideAdapter.prototype = {
 					stations = JSON.parse(this.responseText);
 					var stop = new Date().getTime();
 				} catch(E) {
-					_onload({
+					_callbacks.onload({
 						ok : false
 					});
 				}
@@ -200,7 +218,8 @@ TideAdapter.prototype = {
 								db.execute('INSERT INTO tides VALUES (?,?,?,?)', id, val[i].ts, val[i].ty, val[i].m);
 							}
 						}
-						Ti.App.Properties.setList(id,stations[s].weather);
+						var day = Ti.App.Moment().format('YYYY-MM-DD');
+						Ti.App.Properties.setList(id, stations[s].weather[0].hourly);
 					}
 					db.execute("COMMIT TRANSACTION");
 					var sql = 'SELECT ts FROM `tides` ORDER BY ts DESC';
@@ -211,7 +230,7 @@ TideAdapter.prototype = {
 					resultSet.close();
 					db.close();
 					var stop = new Date().getTime();
-					_onload({
+					_callbacks.onload({
 						ok : true,
 						total : count,
 						latest : Ti.App.Moment.unix(latest).format('LLL')
@@ -222,7 +241,7 @@ TideAdapter.prototype = {
 				Ti.Android && Ti.UI.createNotification({
 					message : 'Nicht im Netz: benutzte alte Daten'
 				}).show();
-				_onload({
+				_callbacks.onload({
 					ok : false
 				});
 			}
@@ -230,6 +249,26 @@ TideAdapter.prototype = {
 		xhr.open('GET', Ti.App.Properties.getString('ENDPOINT'));
 		xhr.setRequestHeader('Accept', 'application/json');
 		xhr.send();
+	},
+	getStationsStatus : function() {
+		var db = Ti.Database.open(Ti.App.Properties.getString('dbname'));
+		var resultSet = db.execute('SELECT COUNT(*) AS total,MAX(ts) AS max, MIN(ts) AS min  FROM `tides` WHERE ts>?', Ti.App.Moment().unix());
+		if (resultSet.isValidRow()) {
+			min = resultSet.fieldByName('min');
+			max = resultSet.fieldByName('max');
+			total = resultSet.fieldByName('total');
+			resultSet.close();
+			db.close();
+			return {
+				total : total,
+				days : Math.floor((max - min) / 3600 / 24)
+			};
+		}
+		return {
+			total : 0,
+			days : 0
+		};
+		db.close();
 	},
 	getFavsCount : function() {
 		var db = Ti.Database.open(Ti.App.Properties.getString('dbname'));
