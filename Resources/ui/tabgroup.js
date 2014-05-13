@@ -19,6 +19,10 @@ exports.create = function() {
 		icon : Ti.Android ? null : 'assets/weather.png',
 		title : 'Regenradar',
 		window : require('ui/rainradar.window').create()
+	}), Titanium.UI.createTab({
+		icon : Ti.Android ? null : 'assets/weather.png',
+		title : 'Windkarte',
+		window : require('ui/wind.window').create()
 	})];
 	/*
 	 var tab2 =
@@ -59,7 +63,42 @@ exports.create = function() {
 			if (activity && activity.actionBar) {
 				activity.actionBar.setTitle('TideRadar');
 				activity.actionBar.setSubtitle('warte auf Daten vom Bundesamt …');
+				activity.onCreateOptionsMenu = function(e) {
+					var modus = Ti.App.TideRadar.getModus();
+					var clearAllChecked = function() {
+						var items = e.menu.getItems(), item;
+						while ( item = items.pop()) {
+							item.setChecked(false);
+						}
+					};
+					e.menu.add({
+						title : "Seekartennull",
+						showAsAction : Ti.Android.SHOW_AS_ACTION_NEVER,
+						itemId : 0,
+						checked : (modus == 'skn') ? true : false,
+						checkable : true,
+						visible : true
+					}).addEventListener("click", function() {
+						clearAllChecked();
+						e.menu.getItem(0).checked = true;
+						Ti.App.TideRadar.setModus('skn');
+					});
+					e.menu.add({
+						title : "Normalnull",
+						showAsAction : Ti.Android.SHOW_AS_ACTION_NEVER,
+						itemId : 1,
+						checked : (modus == 'nn') ? true : false,
+						checkable : true,
+						visible : true
+					}).addEventListener("click", function() {
+						clearAllChecked();
+						e.menu.getItem(1).checked = true;
+						Ti.App.TideRadar.setModus('nn');
+					});
+				};
+
 			}
+
 		});
 	}
 	/*
@@ -79,5 +118,6 @@ exports.create = function() {
 	 tab5.setBadge(favstotal);
 	 }
 	 }*/
+
 	return self;
 };

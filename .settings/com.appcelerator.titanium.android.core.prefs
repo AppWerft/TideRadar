@@ -1,10 +1,10 @@
 android/ATTR_PROJECT_NAME=TideRadar
 android/abi=armeabi
-android/distribute_path=/Users/rainerschleevoigt/Documents/TitaniumStudioWorkspace/Museum der Arbeit
+android/distribute_path=/Users/rainerschleevoigt/Documents/TitaniumStudioWorkspace/TideRadar
 android/key_password=
 android/keystore_alias=googlekey
 android/keystore_password=*MHpsNH
 android/keystore_path=/Users/rainerschleevoigt/.android.keystore
-android/recent_output=/Users/rainerschleevoigt/Documents/TitaniumStudioWorkspace/Museum der Arbeit
+android/recent_output=/Users/rainerschleevoigt/Documents/TitaniumStudioWorkspace/TideRadar
 android/sdk_version=2.3.3
 eclipse.preferences.version=1

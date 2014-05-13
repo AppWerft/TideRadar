@@ -262,6 +262,8 @@ exports.create = function(item) {
 		var activity = self.getActivity();
 		if (!activity.actionBar)
 			return;
+		activity.actionBar.setTitle(item.label);
+		activity.actionBar.setSubtitle('Seekartennull');
 		activity.onCreateOptionsMenu = function(e) {
 			e.menu.add({
 				title : 'Wetter',

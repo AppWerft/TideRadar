@@ -6,7 +6,7 @@ exports.start = function() {
 				var r = Ti.UI.createAlertDialog({
 					cancel : 1,
 					buttonNames : ["Zum Store", "Abbruch"],
-					message : "Es gibt eine neue Version im Playstore.\n\nDiese App auf dem " + Ti.Platform.model + " von " + Ti.Platform.manufacturer + " hat die Version " + Ti.App.getVersion() + " – im Store ist derweil " + version + ".\n\nMöchtest Du erneuern?",
+					message : "Es gibt eine neue Version ("+version+") im Playstore.",
 					title : "Neue Version"
 				});
 				r.addEventListener("click", function(t) {
@@ -14,7 +14,7 @@ exports.start = function() {
 				}), r.show();
 			} else
 				Ti.Android && Ti.UI.createNotification({
-					message : "Freiheit4Josef ist in neuester Version (" + Ti.App.getVersion() + ")"
+					message : Titanium.App.getName() + " ist in neuester Version (" + Ti.App.getVersion() + ")"
 				}).show();
 		}
 	});

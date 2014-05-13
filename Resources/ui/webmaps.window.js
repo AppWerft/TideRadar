@@ -8,7 +8,6 @@ exports.create = function(_id, _label) {
 		url : '/html/maps.html'
 	});
 	self.web.addEventListener('load', function() {
-		console.log(js);
 		var js = "createMap('"+_id+"');";
 		console.log(js);
 		self.web.evalJS(js);

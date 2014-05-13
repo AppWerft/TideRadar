@@ -6,6 +6,7 @@ exports.create = function() {
 		exitOnClose : true,
 		fullscreen : true
 	});
+	require('vendor/versionsreminder').start();
 	setTimeout(function() {
 		popuplayer = Ti.UI.createView({
 			backgroundColor : Ti.App.CONF.blue,
@@ -34,7 +35,7 @@ exports.create = function() {
 			height : 'auto',
 			min : 0,
 			zIndex : 999,
-			right : 80,
+			right : 60,
 			left : 10,
 			max : 1,
 			value : 0.01

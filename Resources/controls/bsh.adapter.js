@@ -5,6 +5,7 @@ var TideAdapter = function() {
 	db.execute('CREATE TABLE IF NOT EXISTS favs (id TEXT, atime TEXT)');
 	db.execute('CREATE TABLE IF NOT EXISTS tides (id TEXT, ts TEXT,ty TEXT,level TEXT)');
 	db.close();
+	this.getModus();
 	return this;
 };
 /* Helper function to calculate datas for now: */
@@ -90,9 +91,12 @@ var getCurrent = function(sets) {
 	} catch(E) {
 		console.log('Error 77: ' + E);
 	}
-	if (set.diff.level != 0) {
+	if (set.diff.level != 0 && !isNaN(set.diff.level)) {
+		/* Berechnung des aktuellen Pegels */
+		// Gesamthub:
 		var amp = Math.abs(parseFloat(set.prev.level, 10) - parseFloat(set.next.level, 10));
 		var cosinus = Math.cos(set.current.timeratio * Math.PI);
+		//console.log(set.diff.level + ' a=' + amp + ' c='+ cosinus);
 		if (set.diff.level < 0) {
 			// ablaufend
 			var level = parseFloat(set.next.level, 10);
@@ -103,9 +107,12 @@ var getCurrent = function(sets) {
 			level = (amp / 2 - cosinus * amp / 2 + level);
 		}
 		set.current.level = level.toFixed(2);
-		set.current.direction = (set.prev.type == 'HW') ? '-' : '+';
-		set.current.text = (set.prev.type == 'HW') ? '⬇ ablaufend' : '⬆ auflaufend';
+	} else {
+		set.current.level = null;
 	}
+	set.current.direction = (set.prev.type == 'HW') ? '-' : '+';
+	set.current.text = (set.diff.level < 0) ? '⬇ ablaufend' : '⬆ auflaufend';
+	set.next.zeit = Ti.App.Moment.unix(set.next.timestamp).format('D. MMM  HH:mm');
 	return set;
 };
 
@@ -185,7 +192,7 @@ TideAdapter.prototype = {
 			return;
 		};
 		var start = new Date().getTime();
-		var xhr = Ti.Network.createHTTPClient({
+		var tidesrequest = Ti.Network.createHTTPClient({
 			ondatastream : function(_e) {
 				if (_e.progress < 0)
 					_callbacks.onprogress(-_e.progress / 610000);
@@ -218,8 +225,6 @@ TideAdapter.prototype = {
 								db.execute('INSERT INTO tides VALUES (?,?,?,?)', id, val[i].ts, val[i].ty, val[i].m);
 							}
 						}
-						var day = Ti.App.Moment().format('YYYY-MM-DD');
-						Ti.App.Properties.setList(id, stations[s].weather[0].hourly);
 					}
 					db.execute("COMMIT TRANSACTION");
 					var sql = 'SELECT ts FROM `tides` ORDER BY ts DESC';
@@ -246,9 +251,25 @@ TideAdapter.prototype = {
 				});
 			}
 		});
-		xhr.open('GET', Ti.App.Properties.getString('ENDPOINT'));
-		xhr.setRequestHeader('Accept', 'application/json');
-		xhr.send();
+		tidesrequest.open('GET', Ti.App.Properties.getString('ENDPOINT') + 'tides.json');
+		tidesrequest.setRequestHeader('Accept', 'application/json');
+		tidesrequest.send();
+
+		/* WEATHER: */
+		var weatherrequest = Ti.Network.createHTTPClient({
+			onload : function() {
+				try {
+					var dummy = JSON.decode(this.responseData);
+					Ti.App.Properties.setList(id, this.responseData);
+				} catch(E) {
+				}
+			},
+			onerror : function(e) {
+			}
+		});
+		weatherrequest.open('GET', Ti.App.Properties.getString('ENDPOINT') + 'weather.json');
+		weatherrequest.setRequestHeader('Accept', 'application/json');
+		weatherrequest.send();
 	},
 	getStationsStatus : function() {
 		var db = Ti.Database.open(Ti.App.Properties.getString('dbname'));
@@ -337,11 +358,24 @@ TideAdapter.prototype = {
 		resultSet.close();
 		db.close();
 		if (tidedatas.length > 0) {
-			_callbacks.onOk({
+			var res = {
 				current : getCurrent(tidedatas).current,
+				next : getCurrent(tidedatas).next,
 				predictions : splitIntoDays(tidedatas)
-			});
+			};
+			if (_callbacks && _callbacks.onOk)
+				_callbacks.onOk(res);
+			else
+				return res;
 		}
+		return null;
+	},
+	setModus : function(modus) {
+		Ti.App.Properties.setString('MODUS', modus);
+	},
+	getModus : function(modus) {
+		this.modus = (Ti.App.Properties.hasProperty('MODUS')) ? Ti.App.Properties.getString('MODUS') : 'skn';
+		return this.modus;
 	}
 };
 

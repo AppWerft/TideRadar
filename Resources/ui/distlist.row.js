@@ -14,7 +14,6 @@ exports.create = function(loc) {
 		color : '#444',
 		font : {
 			fontSize : '20dp',
-			fontWeight : 'bold',
 			fontFamily : 'Copse'
 		},
 		left : 10
