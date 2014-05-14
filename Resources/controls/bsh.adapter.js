@@ -9,7 +9,7 @@ var TideAdapter = function() {
 	return this;
 };
 /* Helper function to calculate datas for now: */
-
+Ti.include('/vendor/date.js');
 isArray = function(obj) {
 	return Object.prototype.toString.call(obj) == "[object Array]";
 };
@@ -106,7 +106,7 @@ var getCurrent = function(sets) {
 			var level = parseFloat(set.prev.level, 10);
 			level = (amp / 2 - cosinus * amp / 2 + level);
 		}
-		set.current.level = level.toFixed(2);
+		set.current.level = level.toFixed(1);
 	} else {
 		set.current.level = null;
 	}
@@ -168,12 +168,6 @@ TideAdapter.prototype = {
 					return 1;
 				}
 				return 0;
-			});
-			Ti.App.addEventListener('mapblur', function() {
-				for (var i = 0; i < 17; i++) {
-					ctrl.tides.getForcast(stations[i].id, function(datas) {
-					});
-				}
 			});
 			callback(stations);
 		});
@@ -344,24 +338,36 @@ TideAdapter.prototype = {
 	},
 	getPrediction : function(_id, _callbacks) {
 		var that = this;
+		this.modus = this.getModus();
+		var skndiff = 0;
+		for (var i = 0; i < this.locations.length; i++) {
+			if (this.locations[i].id == _id) {
+				skndiff = this.locations[i].skn;
+				break;
+			}
+		}
+		//skndiff = 0;
 		var db = Ti.Database.open(Ti.App.Properties.getString('dbname'));
-		var resultSet = db.execute('SELECT * FROM tides  WHERE id=? ORDER by ts', _id);
-		var tidedatas = [];
+		var resultSet = db.execute('SELECT * FROM tides WHERE id=? ORDER by ts', _id);
+		var tideverlauf = [];
 		while (resultSet.isValidRow()) {
-			tidedatas.push({
+			var nn = parseFloat(resultSet.fieldByName('level') - skndiff);
+			var kn = parseFloat(resultSet.fieldByName('level'));
+			var level = (this.modus == 'nn') ? nn : kn;
+			tideverlauf.push({
 				timestamp : parseInt(resultSet.fieldByName('ts')),
-				level : resultSet.fieldByName('level'),
+				level : (isNaN(level)) ? null : level.toFixed(1),
 				direction : resultSet.fieldByName('ty'),
 			});
 			resultSet.next();
 		}
 		resultSet.close();
 		db.close();
-		if (tidedatas.length > 0) {
+		if (tideverlauf.length > 0) {
 			var res = {
-				current : getCurrent(tidedatas).current,
-				next : getCurrent(tidedatas).next,
-				predictions : splitIntoDays(tidedatas)
+				current : getCurrent(tideverlauf).current,
+				next : getCurrent(tideverlauf).next,
+				predictions : splitIntoDays(tideverlauf)
 			};
 			if (_callbacks && _callbacks.onOk)
 				_callbacks.onOk(res);
@@ -372,11 +378,75 @@ TideAdapter.prototype = {
 	},
 	setModus : function(modus) {
 		Ti.App.Properties.setString('MODUS', modus);
+		Ti.App.fireEvent('app:modus_changed', {
+			modus : modus
+		});
 	},
 	getModus : function(modus) {
 		this.modus = (Ti.App.Properties.hasProperty('MODUS')) ? Ti.App.Properties.getString('MODUS') : 'skn';
 		return this.modus;
+	},
+	
+	getJS4Chart : function(_id) {
+		var counter = 0;
+		var tides = [];
+		var now = Ti.App.Moment();
+		var db = Ti.Database.open(Ti.App.Properties.getString('dbname'));
+		var resultSet = db.execute('SELECT * FROM tides WHERE id=? ORDER by ts', _id);
+		var tides = [];
+		while (resultSet.isValidRow()) {
+			var level = parseFloat(resultSet.fieldByName('level'));
+			tides.push({
+				timestamp : parseInt(resultSet.fieldByName('ts')),
+				level : (isNaN(level)) ? null : level.toFixed(1),
+			});
+			resultSet.next();
+		}
+		resultSet.close();
+		db.close();
+		/********** */
+		var chartvalues=[], ups=[], downs=[],timestamps= [];
+		var endzeit;
+		for(var i=0; i < tides.length - 1; i++) {
+			endzeit=tides[i + 1].timestamp;
+			var values = getInterpolatedTideValues({
+						y1 : tides[i].level,
+						y2 : tides[i + 1].level,
+						t1 : tides[i].timestamp,
+						t2 : tides[i + 1].timestamp,
+						steps : 36
+			});
+			for (var j=0;j < values.values.length;j++) {
+				chartvalues.push(values.values[j]);
+			}
+			var interval=(timestamps[timestamps.length - 1] - timestamps[0]) / 5400;
+			
+		}
+	    var PngModule = require('vendor/tipnglet');
+		var p = new PngModule(800,200,8);
+		var green = p.color( 0,255,  0);
+		p.line(green, 2,2, 32,16, 16,32, 4,7);		
+		return p.getBlob();
 	}
+};
+
+var getInterpolatedTideValues = function(options) {
+	var y1 = parseFloat(options.y1);
+	var y2 = parseFloat(options.y2);
+	var t1 = options.t1;
+	var t2 = options.t2;
+	var amp = Math.abs(y2 - y1) / 2;  /* Spitze-Spitze-Wert */
+	var timestep = t2 - t1;
+	var res = {values : [], timestamps : []};
+	for(var s = 0; s < options.steps; s++) {
+		var ratio = Math.cos(s / options.steps * Math.PI);
+		var value = (y2 > y1)  //
+			? y1 + amp * (1 - ratio) //
+			: y2 + amp * (1+ ratio);
+		res.values.push(value.toFixed(1));
+		res.timestamps.push( t1+ s * options.steps*timestep/options.steps);
+	}
+	return res;
 };
 
 module.exports = TideAdapter;

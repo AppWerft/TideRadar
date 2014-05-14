@@ -1,14 +1,14 @@
 Ti.Map = require('ti.map');
 exports.create = function() {
 	function setSubtitleofAnnotation(data, annotation) {
-
-		var pegel = isNaN(data.current.level) ? '' : 'Pegel: ' + data.current.level + ' m';
+		var pegel = isNaN(data.current.level) ? '' : 'Pegel: ' + data.current.level + ' ' + Ti.App.TideRadar.getModus().toUpperCase();
 		var subtitle = Ti.App.Moment().format('HH:mm') + ' Uhr,  ' + pegel + data.current.text;
 		if (annotation)
 			annotation.subtitle = subtitle;
 	}
 
 	var annotations = [], naviviews = [], annotation_busy = false;
+	var activeannotation = null;
 	var self = Ti.UI.createWindow({
 		title : 'Gezeitenkarte@TideRadar',
 		barColor : Ti.App.CONF.blue
@@ -96,6 +96,7 @@ exports.create = function() {
 	self.mapview.addEventListener('click', function(_e) {
 		if (_e.clicksource == 'pin' && _e.annotation.type == 'station') {
 			annotation_busy = true;
+			activeannotation = _e.annotation;
 			setTimeout(function() {
 				annotation_busy = false;
 			}, 1000);
@@ -108,6 +109,15 @@ exports.create = function() {
 			Ti.App.TideRadar.getPrediction(_e.annotation.itemId, {
 				onOk : function(_prediction) {
 					_prediction && setSubtitleofAnnotation(_prediction, _e.annotation);
+				}
+			});
+		}
+	});
+	Ti.App.addEventListener('app:modus_changed', function() {
+		if (activeannotation) {
+			Ti.App.TideRadar.getPrediction(activeannotation.itemId, {
+				onOk : function(_prediction) {
+					_prediction && setSubtitleofAnnotation(_prediction, activeannotation);
 				}
 			});
 		}

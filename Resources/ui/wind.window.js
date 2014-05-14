@@ -9,7 +9,7 @@ exports.create = function(_label) {
 		url : 'http://earth.nullschool.net/#current/wind/surface/level/orthographic=10.00,53.55,20127'
 	});
 	self.web.addEventListener('load', function() {
-
+		
 	});
 	self.add(self.web);
 	return self;

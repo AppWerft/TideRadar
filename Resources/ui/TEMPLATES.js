@@ -11,7 +11,8 @@ exports.nearme = {
 			width : Ti.UI.FILL,
 			height : '30dp',
 			font : {
-				fontSize : '22dp',
+				fontSize : '24dp',
+				fontWeight : 'bold',
 				fontFamily : Ti.App.CONF.hausschrift
 			},
 			left : '10dp',

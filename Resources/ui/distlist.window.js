@@ -4,23 +4,25 @@ exports.create = function() {
 		var section = Ti.UI.createListSection({
 			items : dataitems
 		});
-		for (var i = 0; i < locs.length/20; i++) {
+		console.log('Info: distlist will updated');
+		for (var i = 0; i < locs.length / 20; i++) {
 			dataitems.push(require('ui/listviewitem').create(locs[i]));
 		}
 		section.setItems(dataitems);
 		self.listview.setSections([section]);
-		for (var i = Math.floor(locs.length/20); i < locs.length; i++) {
+		for (var i = Math.floor(locs.length / 20); i < locs.length; i++) {
 			dataitems.push(require('ui/listviewitem').create(locs[i]));
 		}
 		section.setItems(dataitems);
 		self.listview.setSections([section]);
 	}
+
 	var self = Ti.UI.createWindow({
 		barColor : Ti.App.CONF.blue,
 		fullscreen : true,
 		title : 'Umgebung@TideRadar'
 	});
-
+	var loaded = false;
 	self.listview = Ti.UI.createListView({
 		templates : {
 			'template' : require('ui/TEMPLATES').nearme
@@ -166,6 +168,12 @@ exports.create = function() {
 		(Ti.Android) ? win.open() : self.tab.open(win);
 	});
 	self.addEventListener('open', function() {
+		if (loaded) return;
+		loaded=true;
+		Ti.App.TideRadar.getDistList(fillListView);
+	});
+	Ti.App.addEventListener('app:modus_changed', function(e) {
+		console.log('Info: modus changed. ' + e.modus);
 		Ti.App.TideRadar.getDistList(fillListView);
 	});
 	self.add(self.listview);

@@ -1,10 +1,11 @@
+const LATTENHEIGHT = 366;
 exports.create = function(item) {
 	var self = require('ui/window').create({
-		title : item.label
+		title : item.label,
+		backgroundColor : 'white'
 	});
 	setTimeout(function() {
 		Ti.Map = require('ti.map');
-		var cron = null;
 		var pin = null;
 		var hasLevel = false;
 		var rightButton = Ti.UI.createImageView({
@@ -18,56 +19,45 @@ exports.create = function(item) {
 				//tabGroup.activeTab.open(ui.detail.getWeatherWindow(rightButton.weather));
 			}
 		});
-
-		/*ctrl.stations.getWeather(item.gps, function(e) {
-		 var hours = e[0].hourly;
-		 var now = new Date();
-		 var index = Math.floor(now.getHours() / 3);
-		 rightButton.setImage(hours[index].weatherIconUrl[0].value);
-		 ctrl.cachedImageView('cache', hours[index].weatherIconUrl[0].value, rightButton, true);
-		 rightButton.weather = hours;
-		 });*/
-		/*self.leftNavButton.addEventListener('click', function() {
-		 self.close();
-		 });*/
 		self.scheduler = Ti.UI.createTableView({
 			top : 0,
-			height : '50%'
+			bottom : 200
 		});
 		self.scheduler.addEventListener('scroll', function() {
 			hand.hide();
 		});
-		/*var webview = Ti.UI.createWebView({
+		/*self.webview = Ti.UI.createWebView({
 		 url : '/html/index.html',
-		 opacity : 0.9,
-		 height : 120,
-		 bottom : -200,
-		 borderRadius : 8
-		 });
-		 webview.addEventListener('dblclick', function() {
-		 webview.animate(Ti.UI.createAnimation({
-		 bottom : -200,
-		 duration : 600
-		 }));
+		 height : 200,
+		 zIndex:9999,
+		 disableBounce : true,
+		 scalesPageToFit : true,
+		 bottom : 0
 		 });*/
-		var bg = Ti.UI.createImageView({
-			opacity : 0.3,
-			image : 'assets/bg.png',
-			width : Ti.UI.FILL,
-			height : 287,
-			left : 0,
-			bottom : -300,
-			touchEnabled : false,
+		self.tideview = Ti.UI.createScrollView({
+			horizontalWrap : false,
+			layout : 'horizontal',
+			bottom : 0,
+			height : 200,
+			scrollType : 'horizontal',
+			backgroundColor : 'white'
 		});
+		self.tideview.add(Ti.UI.createImageView({
+			top : 0,
+			image : Ti.App.TideRadar.getJS4Chart(item.id),
+			width : 1000,
+			height : 200,
+			borderColor : 'red',
+			borderWidth : 1
+		}));
 		var latte = Ti.UI.createView({
 			backgroundImage : '/assets/leerlatte.png',
 			width : 28,
-			height : 366,
+			height : LATTENHEIGHT,
 			right : 0,
 			top : 0,
 			borderWidth : 1,
 			borderColor : 'gray',
-			borderRadius : 3,
 			touchEnabled : true,
 		});
 
@@ -79,42 +69,10 @@ exports.create = function(item) {
 			bottom : -23,
 			opacity : 0.75
 		});
-
-		self.mapview = Ti.Map.createView({
-			height : Ti.UI.FILL,
-			userLocation : true,
-			userLocationButton : false,
-			enableZoomControls : false,
-			mapType : Titanium.Map.HYBRID_TYPE,
-			region : {
-				latitude : parseFloat(item.gps.split(',')[0], 10) + 0.015,
-				longitude : item.gps.split(',')[1],
-				latitudeDelta : 1,
-				longitudeDelta : 1
-			},
-			top : '50%'
-		});
-		pin = Ti.Map.createAnnotation({
-			latitude : item.gps.split(',')[0],
-			longitude : item.gps.split(',')[1],
-			title : item.label,
-			image : '/assets/mappins/' + Ti.Platform.displayCaps.density + '-pin.png',
-			subtitle : 'keine Pegelinformationen',
-			animate : true,
-		});
-		self.mapview.addAnnotation(pin);
-
-		self.mapview.selectAnnotation(pin);
-		self.add(self.mapview);
-
 		self.add(self.scheduler);
-
 		self.add(latte);
 		self.add(hand);
-
-		self.scheduler.add(bg);
-
-		//self.add(webview);
+		self.add(self.tideview);
 		Ti.App.TideRadar.setFav(item.id);
 		Ti.App.TideRadar.getPrediction(item.id, {
 			onOk : function(tides) {
@@ -122,6 +80,26 @@ exports.create = function(item) {
 					alert('Für diesen Messpunkt liegen für das Jahr 2014 leider keine Angaben vor. ');
 					return;
 				}
+
+				/*for (var i=0;i<values.length;i++) {
+				 self.tideview.add(Ti.UI.createLabel({
+				 backgroundColor:Ti.App.CONF.darkblue,
+				 width:1,
+				 bottom:0,
+				 height:values[i]*36
+				 }));
+				 }*/
+
+				/*self.webview.addEventListener('load',function() {
+				 console.log(tides.current.level);
+				 if (!isNaN(tides.current.level)) {
+				 console.log('Info: start welle');
+				 var js = Ti.App.TideRadar.getJS4Chart(item.id);
+				 console.log(js);
+				 self.webview.evalJS(js);
+				 }
+				 });
+				 */
 				function setLatte(latte, level) {
 					var lattenpositionen = [0, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14];
 					for (var i = 0; i < lattenpositionen.length; i++) {
@@ -158,35 +136,24 @@ exports.create = function(item) {
 					}));
 				}
 
-				function setPin() {
-					var date = new Date().toString('HH:mm');
-					var level = (tides.current.level) ? ' Pegel: ' + tides.current.level + ' m' : '';
-					var subtitle = date + ' Uhr, ' + level + tides.current.text;
-					if (pin)
-						pin.subtitle = subtitle;
-				}
-
-				/*
-				 if (!isNaN(datas.current.level)) {
-				 scheduler.addEventListener('click', function() {
-				 ctrl.tides.getCurveData(item.id, function(js) {
-				 webview.evalJS(js);
-				 webview.animate(Ti.UI.createAnimation({
-				 bottom : 0,
-				 duration : 400
-				 }));
-				 });
-
-				 });
-				 }*/
-				var sections = [];
+				var sections = [], headerviews = [];
 				if (tides == null) {
 					alert('Keine Tidedaten vorhanden – offline?');
 
 				}
-				for (var s = 0; s < tides.predictions.length; s++) {
+				for (var s = 0; s < tides.predictions.length && s < 5; s++) {
+					headerviews[s] = Ti.UI.createView({
+						height : 30,
+						backgroundColor : Ti.App.CONF.darkblue
+					});
+					headerviews[s].add(Ti.UI.createLabel({
+						text : tides.predictions[s].label,
+						textAlign : 'left',
+						left : 10,
+						color : 'white'
+					}));
 					sections[s] = Ti.UI.createTableViewSection({
-						headerTitle : tides.predictions[s].label
+						headerView : headerviews[s]
 					});
 					var rows = [];
 					for (var i = 0; i < tides.predictions[s].tides.length; i++) {
@@ -237,18 +204,10 @@ exports.create = function(item) {
 						sections[s].add(row);
 					}
 					self.scheduler.setData(sections);
-					bg.animate(Ti.UI.createAnimation({
-						duration : 2800,
-						top : '50dp'
-					}));
 
 				}
 				if (!isNaN(tides.current.level)) {
-					var phi = (tides.current.direction == '+') ? -10 : 10;
-					cron = setTimeout(function() {
-						setLatte(latte, tides.current.level);
-						hand.transform = Ti.UI.create2DMatrix().rotate(phi);
-					}, 2000);
+
 				} else {
 					latte.hide();
 				}
@@ -259,11 +218,16 @@ exports.create = function(item) {
 		});
 	}, 100);
 	Ti.Android && self.addEventListener('open', function() {
+		function setSubtitle() {
+			activity.actionBar.setSubtitle((Ti.App.TideRadar.getModus() == 'skn') ? 'Seekartennull' : 'Normalnull');
+		}
+
 		var activity = self.getActivity();
 		if (!activity.actionBar)
 			return;
 		activity.actionBar.setTitle(item.label);
-		activity.actionBar.setSubtitle('Seekartennull');
+		Ti.App.addEventListener('app:modus_changed', setSubtitle);
+		setSubtitle();
 		activity.onCreateOptionsMenu = function(e) {
 			e.menu.add({
 				title : 'Wetter',
@@ -275,6 +239,7 @@ exports.create = function(item) {
 
 		};
 	});
+
 	return self;
 };
 

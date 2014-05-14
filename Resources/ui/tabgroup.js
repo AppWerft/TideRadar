@@ -49,14 +49,12 @@ exports.create = function() {
 	}
 	if (Ti.Android) {
 		self.addEventListener("setTitles", function(_titles) {
-			setTimeout(function() {
-				var activity = self.getActivity();
-				if (activity && activity.actionBar) {
-					_titles.title && activity.actionBar.setTitle(_titles.title);
-					_titles.subtitle && activity.actionBar.setSubtitle(_titles.subtitle);
-
-				}
-			}, 700);
+			try {
+				var actionbar = self.getActivity().getActionBar();
+				_titles.title && actionbar.setTitle(_titles.title);
+				_titles.subtitle && actionbar.setSubtitle(_titles.subtitle);
+			} catch(E) {
+			}
 		});
 		self.addEventListener("open", function() {
 			var activity = self.getActivity();

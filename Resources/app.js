@@ -1,5 +1,6 @@
 Ti.App.CONF = {
 	blue : '#013B69',
+	darkblue : '#053D6B',
 	hausschrift : 'Copse'
 };
 Ti.App.Moment = require('vendor/moment');

@@ -37,7 +37,7 @@ exports.create = function(item) {
 				color : '#444',
 				width : Ti.UI.FILL,
 				font : {
-					fontSize : '18dp',
+					fontSize : '24dp',
 					fontWeight : 'bold',
 					fontFamily : 'Copse'
 				},

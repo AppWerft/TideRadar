@@ -88,41 +88,7 @@ ctrl.tides = ( function() {
 			}
 			return set.current;
 		};
-		api.getTideValues = function(options) {
-			var y1 = options.y1;
-			var y2 = options.y2;
-			var t1 = options.t1;
-			var t2 = options.t2;
-			var now = new Date();
-			var steps = options.steps * 10;
-			var amp = Math.abs(y2 - y1) / 2;
-			var values = [];
-			var timestamps = [];
-			var diff = (t2.getTime() - t1.getTime()) / 1000;
-			for(var s = 0; s < 100000; s++) {
-				var myt1 = t1.clone();
-				var timestamp = myt1.add({
-					seconds : s * steps
-				});
-				var value = Math.cos(s * steps / diff * Math.PI);
-				if(y2 > y1) {
-					value = (amp - value * amp + y1).toFixed(3);
-				} else {
-					value = (amp + value * amp + y2).toFixed(3);
-				}
-				if(now.compareTo(timestamp) <= 0) {
-					values.push(value);
-					timestamps.push(timestamp);
-				}
-				if(myt1.compareTo(t2) > 0)
-					break;
-			}
-
-			return {
-				"values" : values,
-				"timestamps" : timestamps
-			};
-		};
+		
 		api.getForcast = function(id, callback) {
 			var self = this;
 			ctrl.stations.setLatest(id);
@@ -229,65 +195,7 @@ ctrl.tides = ( function() {
 		};
 		api.getCurveData = function(id,_callback) {
 			var self = this;
-			this.getForcast(id, function(datas) {
-				var counter = 0;
-				var tides = [];
-				var now = new Date();
-				for(var i = 0; i < datas.events.length; i++) {
-					var date = Date.parse(datas.events[i].date);
-					if(date.compareTo(now) < 0) {
-						tides[0] = {
-							"timestamp" : datas.events[i].date,
-							"pegel" : datas.events[i].level,
-						};
-					} else {
-						tides.push({
-							"timestamp" : datas.events[i].date,
-							"pegel" : datas.events[i].level
-						});
-						counter++;
-						if(counter == 4)
-							break;
-					}
-				}
-				/********** */
-				var chartvalues=[];
-				var ups=[];
-				var downs=[];
-				var timestamps= [];
-				var endzeit;
-				for(var i=0; i < tides.length - 1; i++) {
-					endzeit=tides[i + 1].timestamp;
-					var values = self.getTideValues({
-						y1 : tides[i].pegel,
-						y2 : tides[i + 1].pegel,
-						t1 : tides[i].timestamp,
-						t2 : tides[i + 1].timestamp,
-						steps : 30
-					});
-					for (var j=0;j < values.values.length;j++) {
-						chartvalues.push(values.values[j]);
-				    	if (tides[i + 1].pegel > tides[i].pegel) {
-				    		downs.push(values.values[j]);
-				    		ups.push(null);
-				    	} else {
-				    		ups.push(values.values[j]);
-				    		downs.push(null);
-				    	}
-					}
-					for (var j=0;j < values.timestamps.length;j++) {
-						timestamps.push(values.timestamps[j]);
-					}
-					var interval=(timestamps[timestamps.length - 1].getTime() - timestamps[0].getTime()) / 5400;
-					var js='initChart({"title":"Tide der nächsten Tage","datas":[' 
-						+ chartvalues + '],"ups":[' 
-						+ ups + '],"downs":['
-						+ downs + '], "interval":'
-						+ interval * 18.3 + '});';
-			   }
-				if (typeof(_callback)=='function') _callback(js);
-				/*********** */
-			});
+			
 		};
 		api.getTideValues = function(options) {
 			var y1 = options.y1;
