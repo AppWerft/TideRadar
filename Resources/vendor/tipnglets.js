@@ -18,6 +18,10 @@
 // create a new Pnglet of specified width, height, and depth
 // width and height are specified in pixels
 // depth is really the number of palette entries
+
+const DEBUG = true;
+
+
 var Pnglet = function(width,height,depth) {
   this.width = width || 16;
   this.height = height || 16;
@@ -89,7 +93,7 @@ var Pnglet = function(width,height,depth) {
   // initialize palette hash
   this.palette = new Object();
   this.pindex = 0;
-}
+};
 
 // version string/number
 Pnglet.version = "19990427.0";
@@ -135,16 +139,16 @@ Pnglet.prototype.isColor = function(color) {
 }
 
 // find the red, green, blue, or alpha value of a Pnglet color
-Pnglet.prototype.red = function(color) { return this.png[this.plte_offs+8+color.charCodeAt(0)*3+0].charCodeAt(0); }
-Pnglet.prototype.green = function(color) { return this.png[this.plte_offs+8+color.charCodeAt(0)*3+1].charCodeAt(0); }
-Pnglet.prototype.blue = function(color) { return this.png[this.plte_offs+8+color.charCodeAt(0)*3+2].charCodeAt(0); }
-Pnglet.prototype.alpha = function(color) { return this.png[this.trns_offs+8+color.charCodeAt(0)].charCodeAt(0); }
+Pnglet.prototype.red = function(color) { return this.png[this.plte_offs+8+color.charCodeAt(0)*3+0].charCodeAt(0); };
+Pnglet.prototype.green = function(color) { return this.png[this.plte_offs+8+color.charCodeAt(0)*3+1].charCodeAt(0); };
+Pnglet.prototype.blue = function(color) { return this.png[this.plte_offs+8+color.charCodeAt(0)*3+2].charCodeAt(0); };
+Pnglet.prototype.alpha = function(color) { return this.png[this.trns_offs+8+color.charCodeAt(0)].charCodeAt(0); };
 
 // draw a point or points
 Pnglet.prototype.point = function(pointColor, x0, y0) {
   var a = arguments;
   this.pointNXY(pointColor, (a.length-1)/2, function(i) { return a[2*i+1]; }, function(i) { return a[2*i+2]; });
-}
+};
 
 Pnglet.prototype.pointNXY = function(pointColor, n, x, y) {
   if ( ! this.isColor(pointColor))
@@ -154,10 +158,10 @@ Pnglet.prototype.pointNXY = function(pointColor, n, x, y) {
 	if (this.inBounds(x1,y1))
       this.png[this.index(x1,y1)] = pointColor;
   }
-}
+};
 
 // read a pixel 
-Pnglet.prototype.getPoint = function(x,y) { return this.inBounds(x,y) ? this.png[this.index(x,y)] : String.fromCharCode(0); }
+Pnglet.prototype.getPoint = function(x,y) { return this.inBounds(x,y) ? this.png[this.index(x,y)] : String.fromCharCode(0); };
 
 // draw a horizontal line
 Pnglet.prototype.horizontalLine = function(lineColor, x1, x2, y) {
@@ -172,7 +176,7 @@ Pnglet.prototype.horizontalLine = function(lineColor, x1, x2, y) {
   else
 	for (x = x2; x <= x1; x += 1)
       this.png[this.index(x,y)] = lineColor;
-}
+};
 
 // draw a vertical line
 Pnglet.prototype.verticalLine = function(lineColor, x, y1, y2) {
@@ -187,7 +191,7 @@ Pnglet.prototype.verticalLine = function(lineColor, x, y1, y2) {
   else
 	for (y = y2; y <= y1; y += 1)
       this.png[this.index(x,y)] = lineColor;
-}
+};
 
 // draw a general line
 Pnglet.prototype.generalLine = function(lineColor, x1, y1, x2, y2) {
@@ -248,13 +252,13 @@ Pnglet.prototype.generalLine = function(lineColor, x1, y1, x2, y2) {
       this.point(lineColor, x, y);
 	}
   }
-}
+};
 
 // draw a line
 Pnglet.prototype.line = function(lineColor, x0, y0) {
   var a = arguments;
   this.lineNXY(lineColor, (a.length-1)/2, function(i) { return a[2*i+1]; }, function(i) { return a[2*i+2]; });
-}
+};
 
 Pnglet.prototype.lineNXY = function(lineColor, n, x, y) {
   if ( ! this.isColor(lineColor))
@@ -349,9 +353,6 @@ Pnglet.prototype.concaveNXY = function(fillColor, n, ptx, pty) {
 		cinsert(j, y);
       }
       if (i != ind[k]) {
-		alert("Your browser's implementation of JavaScript is seriously broken,\n"+
-		      "as in variables are changing value of their own volition.\n"+
-		      "You should upgrade to a newer version browser.");
 		return;
       }
       j = (i+1)%n;		/* vertex next after i */
@@ -761,14 +762,23 @@ Pnglet.prototype._output = function() {
   crc32(this.png, this.iend_offs, this.iend_size);
   console.log(this.png.length);	
   // convert PNG to string
-  return "\211PNG\r\n\032\n"+this.png.join('');
+  return "\211PNG\r\n\032\n"+ this.png.join('');
 };
 
 Pnglet.prototype.getBlob = function() {
 	var temp = Ti.Filesystem.createTempFile();
-	console.log(temp.write(this._output()));
-	console.log(temp.nativePath);
-	return temp.read();
+	temp.write(this._output());
+	if (DEBUG ==true) {
+		console.log('Info: testing of png creation');
+		var path = Ti.Filesystem.isExternalStoragePresent() //
+			? Ti.Filesystem.getExternalStorageDirectory() //
+			: Ti.Filesystem.getApplicationDataDirectory();
+        var f = Ti.Filesystem.getFile(Ti.Filesystem.getApplicationDataDirectory(),'pnglets_test.png');
+    		    console.log(f.nativePath);
+    		    f.write(this._output());
+    		    return f;
+	}
+	else return temp;
 };
 
 /* Table of CRCs of all 8-bit messages. */

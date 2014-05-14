@@ -173,11 +173,11 @@ TideAdapter.prototype = {
 		});
 	},
 	getWeather : function(_id) {
-		var datum = Ti.App.Moment().format('YYYY-MM-DD');
 		var weather = Ti.App.Properties.getList(_id);
 		return weather;
 	},
 	loadStations : function(_args, _callbacks) {
+		console.log('Info: START data mirroring \==============================================')
 		var that = this;
 		if (this.getStationsStatus().days == Ti.App.Properties.getString('DAYS')) {
 			_callbacks.onload({
@@ -253,15 +253,21 @@ TideAdapter.prototype = {
 		var weatherrequest = Ti.Network.createHTTPClient({
 			onload : function() {
 				try {
-					var dummy = JSON.decode(this.responseData);
-					Ti.App.Properties.setList(id, this.responseData);
+					var listofweatherdatas = JSON.parse(this.responseText);
+					for (var id in listofweatherdatas) {
+						Ti.App.Properties.setList(id,listofweatherdatas[id]);
+					}
 				} catch(E) {
+					console.log('Error: cannot parse weather datas ' + E);
 				}
 			},
 			onerror : function(e) {
+				console.log('Error: cannot import weather datas');
 			}
 		});
-		weatherrequest.open('GET', Ti.App.Properties.getString('ENDPOINT') + 'weather.json');
+		var url =  Ti.App.Properties.getString('ENDPOINT') + 'weather.json';
+		console.log('Info: Retreiving weather infos from ' + url);
+		weatherrequest.open('GET',url);
 		weatherrequest.setRequestHeader('Accept', 'application/json');
 		weatherrequest.send();
 	},
@@ -422,11 +428,17 @@ TideAdapter.prototype = {
 			var interval=(timestamps[timestamps.length - 1] - timestamps[0]) / 5400;
 			
 		}
-	    var PngModule = require('vendor/tipnglet');
-		var p = new PngModule(800,200,8);
-		var green = p.color( 0,255,  0);
-		p.line(green, 2,2, 32,16, 16,32, 4,7);		
-		return p.getBlob();
+	    var TiPnglets = require('vendor/tipnglets');
+		var p = new TiPnglets(80,100,8);
+		var green = p.color(0,255,0);
+		var blue = p.color(0,0,255);
+		p.line(green, 2,2, 32,16, 16,32, 4,7);
+		p.oval(green, null, 16,16, 15,15);
+		p.fill(null, blue, 16,16);
+		console.log(p.getBlob());
+		return p.getBlob().nativePath;
+		return p.getBlob().read();;
+		
 	}
 };
 

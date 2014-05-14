@@ -1,6 +1,6 @@
 exports.create = function(loc) {
 	var pin = '/assets/mappins/' + Ti.Platform.displayCaps.density + '-ferry.png';
-	console.log(loc.tiroute);return {
+	return {
 		annotation : require('ti.map').createAnnotation({
 			latitude : loc.latitude,
 			longitude : loc.longitude,title:loc.title,
